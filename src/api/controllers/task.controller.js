@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const httpStatus = require('http-status');
 const express = require('express');
 const Task = require('../models/task.model');
 

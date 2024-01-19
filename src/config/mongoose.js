@@ -8,6 +8,10 @@ mongoose.connection.on("error", (error) => {
   process.exit(-1);
 });
 
+mongoose.connection.on('connected', () => {
+  console.log('Connected to MongoDB');
+});
+
 // Print mongoose logs in dev environment
 if (env === "development") {
   mongoose.set("debug", true);

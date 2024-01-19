@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const httpStatus = require('http-status');
 //  Define task statuses
 const taskStatus = ['open', 'assigned', 'cancelled', 'completed'];
 // Define types of location

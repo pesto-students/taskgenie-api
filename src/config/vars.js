@@ -14,7 +14,8 @@ module.exports = {
     uri:
       process.env.NODE_ENV === 'test '
         ? process.env.MONGO_URI_TESTS
-        : process.env.MONGO_URI,
+        : process.env.MongoDB_URI,
+    dbName: process.env.DB_NAME,
   },
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
 };

@@ -15,6 +15,7 @@ const error = require('../api/middlewares/error');
 const app = express();
 
 // Request logging. dev: console | Production: file
+//initialize morgan (for logger)
 app.use(morgan(logs));
 
 // parse request body  params and attah them to req.body

@@ -32,11 +32,11 @@ app.use(cors());
 
 // Todo: enable passport authentication
 //initialize passport
-app.use(passport.initialize());
-app.use(passport.session());
+// app.use(passport.initialize());
+// app.use(passport.session());
 
 // Mount api routes
-app.use('/', routes);
+app.use('/api', routes);
 
 
 // catch 404 and forward to error handler

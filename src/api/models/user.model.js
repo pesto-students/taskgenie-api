@@ -2,39 +2,42 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
 const UserSchema = new mongoose.Schema({
-    username: String,
-    googleId: String,
-    email:{
+
+    googleId: {
+        type: String,
+        default: null,
+        required: false
+    },
+    email: {
         type: String,
         required: true,
         lowercase: true,
         unique: true
     },
 
-    password:{
+    password: {
         type: String,
-        required: true
     }
 });
 
-//fire middleware before saving the user as we want to save hashed password
-UserSchema.pre('save', async function(next){
-    try{
+//Pre-save middleware to hash the password
+UserSchema.pre('save', async function (next) {
+    try {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(this.password, salt);
         this.password = hashedPassword;
         next();
     }
-    catch(error){
+    catch (error) {
         next(error);
     }
 });
 
-UserSchema.methods.isValidPassword = async function(password){
-    try{
+UserSchema.methods.isValidPassword = async function (password) {
+    try {
         return await bcrypt.compare(password, this.password);
     }
-    catch(error){
+    catch (error) {
         next(error);
     }
 }

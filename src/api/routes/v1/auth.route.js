@@ -2,8 +2,8 @@ const express = require('express');
 const router = express.Router();
 const createError = require('http-errors');
 const User = require('../../models/user.model');
-const { authSchema } = require('../../../../utils/validation_schema');
-const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../../../utils/jwt_util');
+const { authSchema } = require('../../../utils/validation_schema');
+const { signAccessToken, signRefreshToken, verifyRefreshToken } = require('../../../utils/jwt_util');
 const passport = require('passport');
 const controller = require('../../controllers/auth.controller')
 

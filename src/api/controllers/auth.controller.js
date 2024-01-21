@@ -1,18 +1,25 @@
+const passport = require('passport')
+const User = require('../models/user.model');
+const { authSchema } = require('../../utils/validation_schema');
+const { signAccessToken, signRefreshToken } = require('../../utils/jwt_util');
+const createError = require('http-errors')
+
 async function signUp(req, res, next) {
     try {
-        // const {email, password} = req.body;
-        // if(!email || !password) throw createError.BadRequest();
+    //     validate signup body for email and password
         const result = await authSchema.validateAsync(req.body);
 
         //check if user exists
         const doesExist = await User.findOne({ email: result.email });
-
+        // Inform that user already exists
         if (doesExist)
             throw createError.Conflict(`${result.email} already present`);
 
         //create user in database
-        const user = new User(result);    // new User({email: email, password: password});
-        const savedUser = await user.save();
+        const user = new User(result);    
+        await user.save();
+
+
         const accessToken = await signAccessToken(user.id);
         const refreshToken = await signRefreshToken(user.id);
 

@@ -29,13 +29,15 @@ app.use(helmet());
 app.use(cors());
 
 // Todo: enable passport authentication
+//initialize passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Mount api routes
 app.use('/', routes);
 
-// if error is not an instanceOf APIError, convert it
-app.use(error.converter);
 
+// Todo change error handling according to http-error library
 // catch 404 and forward to error handler
 app.use(error.notFound);
 

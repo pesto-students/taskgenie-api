@@ -24,6 +24,7 @@ if (env === "development") {
  */
 
 exports.connect = () => {
+  
   mongoose.connect(mongo.uri).then(() => {
     console.log("mongoDB connected ....");
   });

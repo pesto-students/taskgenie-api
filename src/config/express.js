@@ -5,8 +5,10 @@ const cors = require('cors');
 const helmet = require('helmet');
 const routes = require('../api/routes/v1');
 const { logs } = require('./vars');
+const passport = require('./passport');
+const createError = require('http-errors')
 // const strategies = require('./passport')
-const error = require('../api/middlewares/error');
+//const error = require('../api/middlewares/error');
 
 /**
  * Express instance
@@ -37,11 +39,19 @@ app.use(passport.session());
 app.use('/', routes);
 
 
-// Todo change error handling according to http-error library
 // catch 404 and forward to error handler
-app.use(error.notFound);
+app.use((req, res, next) => {
+    next(createError.Unauthorized); // Use http-errors to create a 404 error
+});
 
-// error handler, send stacktracer only during development
-app.use(error.handler);
-
+// error handler, send stack trace only during development
+app.use((err, req, res, next) => {
+    res.status(err.status || 500);
+    res.json({
+        error: {
+            message: err.message,
+            status: err.status,
+        },
+    });
+});
 module.exports = app;

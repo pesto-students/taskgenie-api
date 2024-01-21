@@ -13,9 +13,13 @@ module.exports = {
   mongo: {
     uri:
       process.env.NODE_ENV === 'test '
-        ? process.env.MONGO_URI_TESTS
-        : process.env.MongoDB_URI,
+        ? process.env.MONGODB_URI_TESTS
+        : process.env.MONGODB_URI,
     dbName: process.env.DB_NAME,
+  },
+  google: {
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.CLIENT_SECRET,
   },
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
 };

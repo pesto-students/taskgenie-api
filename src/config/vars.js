@@ -22,5 +22,6 @@ module.exports = {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
   },
+  sessionSecret: process.env.SESSION_SECRET,
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
 };

@@ -40,6 +40,12 @@ router
 //     res.redirect('/profile/');
 // });
 
+//middleware
+// app.post('/login', 
+//   passport.authenticate('local', { failureRedirect: '/login' }),
+//   function(req, res) {
+//     res.redirect('/');
+//   });
 
 
 module.exports = router;

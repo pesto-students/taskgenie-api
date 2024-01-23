@@ -4,17 +4,30 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const routes = require('../api/routes/v1');
-const { logs } = require('./vars');
+const { mongo, logs } = require('./vars');
 const passport = require('./passport');
 const createError = require('http-errors')
 // const strategies = require('./passport')
 //const error = require('../api/middlewares/error');
+const session = require('express-session');
+const { sessionSecret } = require('./config/vars');
+const MongoStore = require('connect-mongo');
 
 /**
  * Express instance
  * @public
  */
 const app = express();
+
+app.use(session({
+    secret: sessionSecret,
+    resave: false,
+    saveUninitialized: true,
+    store: MongoStore.create({mongoUrl: mongo.uri , collectionName: 'users' }),
+    cookie: {
+        maxAge: 1000*60*60*24
+    }
+}))
 
 // Request logging. dev: console | Production: file
 //initialize morgan (for logger)
@@ -31,9 +44,9 @@ app.use(helmet());
 app.use(cors());
 
 // Todo: enable passport authentication
-//initialize passport
-// app.use(passport.initialize());
-// app.use(passport.session());
+// initialize passport
+app.use(passport.initialize());
+app.use(passport.session());
 
 // Mount api routes
 app.use('/api', routes);

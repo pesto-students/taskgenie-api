@@ -1,46 +1,37 @@
+/* eslint-disable no-underscore-dangle */
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const CreateHttpError = require('http-errors');
 const httpStatus = require('http-status');
-const { omitBy, isNil } = require('lodash');
-const bcrypt = require('bcryptjs');
-const moment = require('moment-timezone');
-const jwt = require('jwt-simple');
-const uuidv4 = require('uuid/v4');
-const APIError = require('../errors/api-error');
-const { env, jwtSecret, jwtExpirationInterval } = require('../../config/vars');
-
+const jsonwebtoken = require('jsonwebtoken');
+const moment = require('moment');
+const { jwtExpirationInterval, jwtSecret } = require('../../config/vars');
 /**
  * User Roles
  */
 const roles = ['user', 'admin'];
 
 /**
- * User Schema
- * @private
+ *  User Schema
+ *  @private
  */
-const userSchema = new mongoose.Schema(
+const UserSchema = new mongoose.Schema(
   {
     email: {
       type: String,
-      match: /^\S+@\S+\.\S+$/,
       required: true,
+      lowercase: true,
       unique: true,
       trim: true,
-      lowercase: true,
     },
+
     password: {
       type: String,
       required: true,
-      minlength: 6,
+      minlength: 8,
       maxlength: 128,
-    },
-    name: {
-      type: String,
-      maxlength: 128,
-      index: true,
-      trim: true,
     },
     services: {
-      facebook: String,
       google: String,
     },
     role: {
@@ -55,111 +46,108 @@ const userSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
-
 /**
- * Add your
- * - pre-save hooks
+ * Pre-save hooks
  * - validations
- * - virtuals
+ *
  */
-userSchema.pre('save', async function save(next) {
+// Pre-save middleware to hash the password
+UserSchema.pre('save', async function saveMiddleware(next) {
   try {
-    if (!this.isModified('password')) return next();
-
-    const rounds = env === 'test' ? 1 : 10;
-
-    const hash = await bcrypt.hash(this.password, rounds);
-    this.password = hash;
-
-    return next();
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(this.password, salt);
+    this.password = hashedPassword;
+    next();
   } catch (error) {
-    return next(error);
+    next(error);
   }
 });
-
 /**
  * Methods
  */
-userSchema.method({
-  transform() {
-    const transformed = {};
-    const fields = ['id', 'name', 'email', 'picture', 'role', 'createdAt'];
 
-    fields.forEach((field) => {
-      transformed[field] = this[field];
-    });
-
-    return transformed;
+UserSchema.methods = {
+  /**
+   * Compare stored password with a given passwords
+   * @param {String} password
+   * @returns
+   */
+  async passwordMatches(password) {
+    return bcrypt.compare(password, this.password);
   },
-
+  /**
+   * signs jwt token with given payload, for the current user
+   */
   token() {
     const payload = {
       exp: moment().add(jwtExpirationInterval, 'minutes').unix(),
       iat: moment().unix(),
       sub: this._id,
     };
-    return jwt.encode(payload, jwtSecret);
+    // jwt.encode(payload, jwtSecret);
+    return jsonwebtoken.sign(payload, jwtSecret);
   },
-
-  async passwordMatches(password) {
-    return bcrypt.compare(password, this.password);
-  },
-});
+};
 
 /**
  * Statics
  */
-userSchema.statics = {
-  roles,
 
+UserSchema.statics = {
+  roles,
   /**
-   * Get user
    *
-   * @param {ObjectId} id - The objectId of user.
-   * @returns {Promise<User, APIError>}
+   * @param {ObjectId} id The objectId of user.
+   * @returns {Promise<User, HttpError>}
    */
   async get(id) {
     let user;
-
+    // using mongoDB objectId as user userid
     if (mongoose.Types.ObjectId.isValid(id)) {
       user = await this.findById(id).exec();
     }
     if (user) {
       return user;
     }
-
-    throw new APIError({
+    throw new CreateHttpError({
       message: 'User does not exist',
       status: httpStatus.NOT_FOUND,
     });
   },
-
   /**
-   * Find user by email and tries to generate a JWT token
-   *
-   * @param {ObjectId} id - The objectId of user.
-   * @returns {Promise<User, APIError>}
+   * Find user by email and tries to generate jwt token
+   * @param {*} options
+   * @returns {Promise<User, HttpError>}
    */
   async findAndGenerateToken(options) {
+    // throw error if no email is provided
     const { email, password, refreshObject } = options;
-    if (!email)
-      throw new APIError({
-        message: 'An email is required to generate a token',
+    if (!email) {
+      throw new Error({
+        message: 'An email is required to generate access token',
       });
-
-    const user = await this.findOne({ email }).exec();
+    }
+    // eslint-disable-next-line no-use-before-define
+    const user = await User.findOne({ email }).exec();
     const err = {
       status: httpStatus.UNAUTHORIZED,
       isPublic: true,
     };
     if (password) {
-      if (user && (await user.passwordMatches(password))) {
-        return { user, accessToken: user.token() };
+      // email and password are available
+      if (user && user.passwordMatches(password)) {
+        // generate a new jwt token and send
+        return {
+          user,
+          accessToken: user.token(),
+        };
       }
       err.message = 'Incorrect email or password';
     } else if (refreshObject && refreshObject.userEmail === email) {
+      // if email is there and a valid refresh token is provided
+      // generate a new access token and send
       if (moment(refreshObject.expires).isBefore()) {
         err.message = 'Invalid refresh token.';
       } else {
@@ -168,74 +156,10 @@ userSchema.statics = {
     } else {
       err.message = 'Incorrect email or refreshToken';
     }
-    throw new APIError(err);
-  },
-
-  /**
-   * List users in descending order of 'createdAt' timestamp.
-   *
-   * @param {number} skip - Number of users to be skipped.
-   * @param {number} limit - Limit number of users to be returned.
-   * @returns {Promise<User[]>}
-   */
-  list({ page = 1, perPage = 30, name, email, role }) {
-    const options = omitBy({ name, email, role }, isNil);
-
-    return this.find(options)
-      .sort({ createdAt: -1 })
-      .skip(perPage * (page - 1))
-      .limit(perPage)
-      .exec();
-  },
-
-  /**
-   * Return new validation error
-   * if error is a mongoose duplicate key error
-   *
-   * @param {Error} error
-   * @returns {Error|APIError}
-   */
-  checkDuplicateEmail(error) {
-    if (error.name === 'MongoError' && error.code === 11000) {
-      return new APIError({
-        message: 'Validation Error',
-        errors: [
-          {
-            field: 'email',
-            location: 'body',
-            messages: ['"email" already exists'],
-          },
-        ],
-        status: httpStatus.CONFLICT,
-        isPublic: true,
-        stack: error.stack,
-      });
-    }
-    return error;
-  },
-
-  async oAuthLogin({ service, id, email, name, picture }) {
-    const user = await this.findOne({
-      $or: [{ [`services.${service}`]: id }, { email }],
-    });
-    if (user) {
-      user.services[service] = id;
-      if (!user.name) user.name = name;
-      if (!user.picture) user.picture = picture;
-      return user.save();
-    }
-    const password = uuidv4();
-    return this.create({
-      services: { [service]: id },
-      email,
-      password,
-      name,
-      picture,
-    });
+    throw new CreateHttpError(err);
   },
 };
 
-/**
- * @typedef User
- */
-module.exports = mongoose.model('User', userSchema);
+const User = mongoose.model('User', UserSchema);
+
+module.exports = User;

@@ -23,5 +23,6 @@ module.exports = {
     clientSecret: process.env.CLIENT_SECRET,
     callbackURL: process.env.GOOGLE_CALLBACK_URL,
   },
+  sessionSecret: process.env.SESSION_SECRET,
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
 };

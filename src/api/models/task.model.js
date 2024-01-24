@@ -75,17 +75,7 @@ const taskSchema = new mongoose.Schema({
  * Statics
  */
 
-taskSchema.statics = {
-  /**
-   * List tasks in descending order of date in 50kms surround of given location.
-   */
-  /**
-   * Logic
-   * find user's location - if specified => from filter
-   * => if not specified
-   */
-  list({ area, radius = 50 }) {},
-};
+taskSchema.statics = {};
 /**
  * @typedef Task
  */

@@ -21,6 +21,7 @@ module.exports = {
   google: {
     clientId: process.env.GOOGLE_CLIENT_ID,
     clientSecret: process.env.CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL,
   },
   logs: process.env.NODE_ENV === 'production' ? 'combined' : 'dev',
 };

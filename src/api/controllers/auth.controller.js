@@ -1,82 +1,98 @@
-const passport = require('passport')
+const createError = require('http-errors');
+const httpStatus = require('http-status');
+const moment = require('moment');
+const { omit } = require('lodash');
 const User = require('../models/user.model');
-const { authSchema } = require('../../utils/validation_schema');
-const { signAccessToken, signRefreshToken } = require('../../utils/jwt_util');
-const createError = require('http-errors')
+const { jwtExpirationInterval } = require('../../config/vars');
+const RefreshToken = require('../models/refreshToken.model');
 
+// Generate token response containing access token and refresh token
+function generateTokenResponse(user, accessToken) {
+  const tokenType = 'Bearer';
+  const token = RefreshToken.generate(user).refreshToken;
+  const expiresIn = moment().add(jwtExpirationInterval, 'minutes');
+  return {
+    tokenType,
+    accessToken,
+    token,
+    expiresIn,
+  };
+}
+/**
+ * Returns jwt token if registration was successful
+ * @public
+ */
 async function signUp(req, res, next) {
-    try {
-    //     validate signup body for email and password
-        const result = await authSchema.validateAsync(req.body);
+  try {
+    const userData = omit(req.body, 'role');
 
-        //check if user exists
-        const doesExist = await User.findOne({ email: result.email });
-        // Inform that user already exists
-        if (doesExist)
-            throw createError.Conflict(`${result.email} already present`);
-
-        //create user in database
-        const user = new User(result);    
-        await user.save();
-
-
-        const accessToken = await signAccessToken(user.id);
-        const refreshToken = await signRefreshToken(user.id);
-
-        res.send({ accessToken, refreshToken });
+    //  Create user in database
+    const user = new User(userData);
+    await user.save();
+    //  Generate Token response containing access token and refresh token
+    const token = generateTokenResponse(user, user.token());
+    res.status(httpStatus.CREATED);
+    return res.json({ token, user });
+  } catch (error) {
+    // check if it is mongo duplicate rror
+    if (error.code === 11000) {
+      return next(createError.Conflict('Email already exists'));
     }
-    catch (error) {
-        //check if error is from joi
-        if (error.isJoi === true)
-            error.status = 422;
-        next(error);
-    }
+    next(error);
+  }
+  return null;
 }
-
+/**
+ * Returns jwt token if valid username and password is provided
+ * @public
+ */
 async function signIn(req, res, next) {
-    try {
-        const result = await authSchema.validateAsync(req.body);
-
-
-        const user = await User.findOne({ email: result.email });
-        if (!user)
-            throw createError.NotFound("User not registered");
-
-        const isMatch = await user.isValidPassword(result.password);
-        if (!isMatch)
-            throw createError.Unauthorized("Username/password not valid");
-
-        const accessToken = await signAccessToken(user.id);
-        const refreshToken = await signRefreshToken(user.id);
-
-        res.send({ accessToken, refreshToken });
-    }
-    catch (error) {
-        if (error.isJoi)
-            return next(createError.BadRequest("Invalide username/password"));       //we are returning because we do not want next 'next'
-        next(error);
-    }
+  try {
+    const { user, accessToken } = await User.findAndGenerateToken(req.body);
+    const tokenResponse = generateTokenResponse(user, accessToken);
+    return res.json({ tokenResponse, user });
+  } catch (error) {
+    return next(error);
+  }
 }
 
+/**
+ * Returns a new jwt when given a valid refresh token
+ * @public
+ */
 async function refreshToken(req, res, next) {
-    try {
-        const { refreshToken } = req.body;
-        if (!refreshToken)
-            throw createError.BadRequest();
-        const userId = await verifyRefreshToken(refreshToken);
-
-        const newAccessToken = await signAccessToken(user.id);
-        const newRefreshToken = await signRefreshToken(user.id);
-
-        res.send({ accessToken: newAccessToken, refreshToken: newRefreshToken });
-    }
-    catch (error) {
-        next(error);
-    }
+  try {
+    const { email, token } = req.body;
+    const refreshObject = await RefreshToken.findOneAndRemove({
+      userEmail: email,
+      refreshToken: token,
+    });
+    const { user, accessToken } = await User.findAndGenerateToken({
+      email,
+      refreshObject,
+    });
+    const response = generateTokenResponse(user, accessToken);
+    return res.json(response);
+  } catch (error) {
+    return next(error);
+  }
+}
+// logout and remove the refresh token from the database
+async function logout(req, res, next) {
+  try {
+    const { email, token } = req.body;
+    await RefreshToken.findOneAndRemove({
+      userEmail: email,
+      refreshToken: token,
+    });
+    return res.status(200).json({ message: 'logout successful' });
+  } catch (error) {
+    return next(error);
+  }
 }
 
 module.exports = {
-    signUp,
-    signIn,
-    refreshToken,
-}
+  signUp,
+  signIn,
+  refreshToken,
+};

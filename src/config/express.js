@@ -36,6 +36,7 @@ passport.use('google', strategies.google);
 
 // Mount api routes
 app.use('/api', routes);
+// app.use('/api', (req,res) => { res.send('dog')})
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

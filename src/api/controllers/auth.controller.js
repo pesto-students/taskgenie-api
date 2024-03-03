@@ -14,7 +14,7 @@ function generateTokenResponse(user, accessToken) {
   return {
     tokenType,
     accessToken,
-    token,
+    refreshToken: token,
     expiresIn,
   };
 }
@@ -26,22 +26,36 @@ async function signUp(req, res, next) {
   try {
     const userData = omit(req.body, 'role');
 
-    //  Create user in database
+    // Create user in database
     const user = new User(userData);
     await user.save();
-    //  Generate Token response containing access token and refresh token
+
+    // Generate Token response containing access token and refresh token
     const token = generateTokenResponse(user, user.token());
-    res.status(httpStatus.CREATED);
-    return res.json({ token, user });
+
+    // Return the response with appropriate status code and JSON body
+    res.status(httpStatus.CREATED).json({
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: token.expiresIn,
+      user: {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
   } catch (error) {
-    // check if it is mongo duplicate rror
+    // Check if it is a MongoDB duplicate error
     if (error.code === 11000) {
       return next(createError.Conflict('Email already exists'));
     }
     next(error);
   }
-  return null;
 }
+
 /**
  * Returns jwt token if valid username and password is provided
  * @public

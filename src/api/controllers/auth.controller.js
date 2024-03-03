@@ -24,9 +24,21 @@ function generateTokenResponse(user, accessToken) {
  */
 async function signUp(req, res, next) {
   try {
-    const userData = omit(req.body, 'role');
+    const { email } = req.body;
 
-    // Create user in database
+    // Check if user already exists with the given email
+    const existingUser = await User.findOne({ email });
+
+    if (existingUser) {
+      return res.status(httpStatus.CONFLICT).json({
+        status: 'error',
+        code: 'email_already_exists',
+        message: 'Email already exists',
+      });
+    }
+
+    // If user doesn't exist, proceed with creating a new user
+    const userData = omit(req.body, 'role');
     const user = new User(userData);
     await user.save();
 
@@ -48,11 +60,7 @@ async function signUp(req, res, next) {
       },
     });
   } catch (error) {
-    // Check if it is a MongoDB duplicate error
-    if (error.code === 11000) {
-      return next(createError.Conflict('Email already exists'));
-    }
-    next(error);
+    next(error); // Pass other errors to the error handler middleware
   }
 }
 

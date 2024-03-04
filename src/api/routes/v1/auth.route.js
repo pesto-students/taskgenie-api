@@ -11,7 +11,9 @@ router
   .route('/signup')
   .post(validateRequest(authSchema), controller.signUp);
 
-// router.route('/signin').post(validateRequest(authSchema), controller.signIn);
+router
+  // signin route
+.route('/signin').post(validateRequest(authSchema), controller.signIn);
 
 // router.route('/refresh-token').post(controller.refreshToken);
 

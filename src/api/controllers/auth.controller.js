@@ -70,7 +70,27 @@ async function signUp(req, res, next) {
  */
 async function signIn(req, res, next) {
   try {
+    const {email, password} = req.body;
     const { user, accessToken } = await User.findAndGenerateToken(req.body);
+
+    if (!user) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        status: 'error',
+        code: 'authentication_failed',
+        message: 'Authentication failed. User not found or invalid credentials.',
+      });
+    }
+
+    const isPasswordMatch = await user.passwordMatches(password);
+
+    if (!isPasswordMatch) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        status: 'error',
+        code: 'authentication_failed',
+        message: 'Authentication failed. Incorrect password.',
+      });
+    }
+
     const tokenResponse = generateTokenResponse(user, accessToken);
     return res.json({ tokenResponse, user });
   } catch (error) {

@@ -6,10 +6,13 @@ const { authSchema } = require('../../validations/auth.validation');
 const controller = require('../../controllers/auth.controller');
 const { validateRequest } = require('../../middlewares/validateRequest');
 
+router.route('/getStatus').get((req, res) => {
+  res.send('meow');
+});
 router
   // signup route
   .route('/signup')
-  .post(validateRequest(authSchema), controller.signUp);
+  .post(controller.signUp);
 
 // router.route('/signin').post(validateRequest(authSchema), controller.signIn);
 

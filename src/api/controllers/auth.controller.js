@@ -25,7 +25,7 @@ function generateTokenResponse(user, accessToken) {
 async function signUp(req, res, next) {
   try {
     const { email } = req.body;
-
+    console.log('inside signup')
     // Check if user already exists with the given email
     const existingUser = await User.findOne({ email });
 

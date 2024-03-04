@@ -102,7 +102,22 @@ async function signIn(req, res, next) {
     const { accessToken } = await user.token();
 
     const tokenResponse = generateTokenResponse(user, accessToken);
-    return res.json({ tokenResponse, user });
+
+    return res.json(
+      {
+        accessToken: tokenResponse.accessToken,
+        refreshToken: tokenResponse.refreshToken,
+        tokenType: 'Bearer',
+        expiresIn: tokenResponse.expiresIn,
+        user: {
+          email: user.email,
+          role: user.role,
+          id: user.id,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+        },
+      }
+    );
   } catch (error) {
     return next(error);
   }

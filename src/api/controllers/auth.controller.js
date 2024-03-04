@@ -14,7 +14,7 @@ function generateTokenResponse(user, accessToken) {
   return {
     tokenType,
     accessToken,
-    token,
+    refreshToken: token,
     expiresIn,
   };
 }
@@ -24,33 +24,97 @@ function generateTokenResponse(user, accessToken) {
  */
 async function signUp(req, res, next) {
   try {
-    const userData = omit(req.body, 'role');
+    const { email } = req.body;
+    console.log('inside signup');
+    // Check if user already exists with the given email
+    const existingUser = await User.findOne({ email });
 
-    //  Create user in database
+    if (existingUser) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        message: 'Email already exists',
+      });
+    }
+
+    // If user doesn't exist, proceed with creating a new user
+    const userData = omit(req.body, 'role');
     const user = new User(userData);
     await user.save();
-    //  Generate Token response containing access token and refresh token
+
+    // Generate Token response containing access token and refresh token
     const token = generateTokenResponse(user, user.token());
-    res.status(httpStatus.CREATED);
-    return res.json({ token, user });
+
+    // Return the response with appropriate status code and JSON body
+    res.status(httpStatus.CREATED).json({
+      accessToken: token.accessToken,
+      refreshToken: token.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: token.expiresIn,
+      user: {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
   } catch (error) {
-    // check if it is mongo duplicate rror
-    if (error.code === 11000) {
-      return next(createError.Conflict('Email already exists'));
-    }
-    next(error);
+    next(error); // Pass other errors to the error handler middleware
   }
-  return null;
 }
+
 /**
  * Returns jwt token if valid username and password is provided
  * @public
  */
 async function signIn(req, res, next) {
   try {
-    const { user, accessToken } = await User.findAndGenerateToken(req.body);
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(httpStatus.CONFLICT).json({
+        status: 'error',
+        code: 'email_does_not_exists',
+        message: 'Email doesn not exists',
+      });
+    }
+
+    if (!user) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        status: 'error',
+        code: 'authentication_failed',
+        message:
+          'Authentication failed. User not found or invalid credentials.',
+      });
+    }
+
+    const isPasswordMatch = await user.passwordMatches(password);
+
+    if (!isPasswordMatch) {
+      return res.status(httpStatus.UNAUTHORIZED).json({
+        status: 'error',
+        code: 'authentication_failed',
+        message: 'Authentication failed. Wrong credentials.',
+      });
+    }
+
+    const { accessToken } = await user.token();
+
     const tokenResponse = generateTokenResponse(user, accessToken);
-    return res.json({ tokenResponse, user });
+
+    return res.json({
+      accessToken: tokenResponse.accessToken,
+      refreshToken: tokenResponse.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: tokenResponse.expiresIn,
+      user: {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
   } catch (error) {
     return next(error);
   }

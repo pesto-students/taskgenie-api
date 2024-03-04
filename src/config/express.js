@@ -17,7 +17,7 @@ const app = express();
 
 // Request logging. dev: console | Production: file
 // initialize morgan (for logger)
-app.use(morgan(logs));
+// app.use(morgan(logs));
 
 // parse request body  params and attah them to req.body
 app.use(bodyParser.json());
@@ -29,13 +29,20 @@ app.use(helmet());
 // enable CORS
 app.use(cors());
 
+// TODO: remove it
+app.use((req, res, next) => {
+  console.log('Request Body:', req.body, req.path);
+  next();
+});
+console.log('before auth initialise');
 // enable authentication
 passport.initialize();
 passport.use('jwt', strategies.jwt);
 passport.use('google', strategies.google);
-
+console.log('before mounting routes')
 // Mount api routes
 app.use('/api', routes);
+// app.use('/api', (req,res) => { res.send('dog')})
 
 // catch 404 and forward to error handler
 app.use((req, res, next) => {

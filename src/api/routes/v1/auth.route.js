@@ -11,13 +11,14 @@ router.route('/getStatus').get((req, res) => {
 });
 router
   // signup route
+
   .route('/signup')
-  .post(controller.signUp);
+  .post(validateRequest(authSchema), controller.signUp);
 
 router
   // signin route
-.route('/signin')
-.post(validateRequest(authSchema), controller.signIn);
+  .route('/signin')
+  .post(validateRequest(authSchema), controller.signIn);
 
 // router.route('/refresh-token').post(controller.refreshToken);
 

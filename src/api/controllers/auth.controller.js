@@ -25,14 +25,12 @@ function generateTokenResponse(user, accessToken) {
 async function signUp(req, res, next) {
   try {
     const { email } = req.body;
-    console.log('inside signup')
+    console.log('inside signup');
     // Check if user already exists with the given email
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
       return res.status(httpStatus.UNAUTHORIZED).json({
-        status: 'error',
-        code: 'email_already_exists',
         message: 'Email already exists',
       });
     }
@@ -72,7 +70,7 @@ async function signIn(req, res, next) {
   try {
     const { email, password } = req.body;
     const user = await User.findOne({ email });
-    
+
     if (!user) {
       return res.status(httpStatus.CONFLICT).json({
         status: 'error',
@@ -85,10 +83,11 @@ async function signIn(req, res, next) {
       return res.status(httpStatus.UNAUTHORIZED).json({
         status: 'error',
         code: 'authentication_failed',
-        message: 'Authentication failed. User not found or invalid credentials.',
+        message:
+          'Authentication failed. User not found or invalid credentials.',
       });
     }
-    
+
     const isPasswordMatch = await user.passwordMatches(password);
 
     if (!isPasswordMatch) {
@@ -103,21 +102,19 @@ async function signIn(req, res, next) {
 
     const tokenResponse = generateTokenResponse(user, accessToken);
 
-    return res.json(
-      {
-        accessToken: tokenResponse.accessToken,
-        refreshToken: tokenResponse.refreshToken,
-        tokenType: 'Bearer',
-        expiresIn: tokenResponse.expiresIn,
-        user: {
-          email: user.email,
-          role: user.role,
-          id: user.id,
-          createdAt: user.createdAt,
-          updatedAt: user.updatedAt,
-        },
-      }
-    );
+    return res.json({
+      accessToken: tokenResponse.accessToken,
+      refreshToken: tokenResponse.refreshToken,
+      tokenType: 'Bearer',
+      expiresIn: tokenResponse.expiresIn,
+      user: {
+        email: user.email,
+        role: user.role,
+        id: user.id,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+      },
+    });
   } catch (error) {
     return next(error);
   }

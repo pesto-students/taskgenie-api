@@ -30,7 +30,7 @@ async function signUp(req, res, next) {
     const existingUser = await User.findOne({ email });
 
     if (existingUser) {
-      return res.status(httpStatus.CONFLICT).json({
+      return res.status(httpStatus.UNAUTHORIZED).json({
         status: 'error',
         code: 'email_already_exists',
         message: 'Email already exists',
@@ -70,8 +70,16 @@ async function signUp(req, res, next) {
  */
 async function signIn(req, res, next) {
   try {
-    const {email, password} = req.body;
-    const { user, accessToken } = await User.findAndGenerateToken(req.body);
+    const { email, password } = req.body;
+    const user = await User.findOne({ email });
+    
+    if (!user) {
+      return res.status(httpStatus.CONFLICT).json({
+        status: 'error',
+        code: 'email_does_not_exists',
+        message: 'Email doesn not exists',
+      });
+    }
 
     if (!user) {
       return res.status(httpStatus.UNAUTHORIZED).json({
@@ -80,16 +88,18 @@ async function signIn(req, res, next) {
         message: 'Authentication failed. User not found or invalid credentials.',
       });
     }
-
+    
     const isPasswordMatch = await user.passwordMatches(password);
 
     if (!isPasswordMatch) {
       return res.status(httpStatus.UNAUTHORIZED).json({
         status: 'error',
         code: 'authentication_failed',
-        message: 'Authentication failed. Incorrect password.',
+        message: 'Authentication failed. Wrong credentials.',
       });
     }
+
+    const { accessToken } = await user.token();
 
     const tokenResponse = generateTokenResponse(user, accessToken);
     return res.json({ tokenResponse, user });

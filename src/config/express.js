@@ -29,17 +29,10 @@ app.use(helmet());
 // enable CORS
 app.use(cors());
 
-// TODO: remove it
-app.use((req, res, next) => {
-  console.log('Request Body:', req.body, req.path);
-  next();
-});
-console.log('before auth initialise');
 // enable authentication
 passport.initialize();
 passport.use('jwt', strategies.jwt);
 passport.use('google', strategies.google);
-console.log('before mounting routes')
 // Mount api routes
 app.use('/api', routes);
 // app.use('/api', (req,res) => { res.send('dog')})

@@ -11,7 +11,6 @@ router.route('/getStatus').get((req, res) => {
 });
 router
   // signup route
-
   .route('/signup')
   .post(validateRequest(authSchema), controller.signUp);
 

@@ -46,7 +46,7 @@ const UserSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 /**
  * Pre-save hooks
@@ -86,8 +86,8 @@ UserSchema.methods = {
       iat: moment().unix(),
       sub: this._id,
     };
-    // jwt.encode(payload, jwtSecret);
-    return jsonwebtoken.sign(payload, jwtSecret);
+    const jwtToken = jsonwebtoken.sign(payload, jwtSecret);
+    return jwtToken;
   },
 };
 

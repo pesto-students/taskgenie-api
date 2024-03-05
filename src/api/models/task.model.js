@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
-//  Define task statuses
+// Define task statuses
 const taskStatus = ['open', 'assigned', 'cancelled', 'completed'];
 // Define types of location
-const locationType = ['remote', 'inperson'];
+const locationType = ['remote', 'in-person'];
 /**
  * CommentSchema
  */
@@ -40,7 +40,17 @@ const taskSchema = new mongoose.Schema({
     required: true,
     maxlength: 1000,
   },
-  imageUrls: [String],
+  imageUrls: [
+    {
+      type: String,
+      validate: {
+        validator(v) {
+          return /^https?:\/\/.*\.(?:png|jpg|jpeg)$/i.test(v);
+        },
+        message: (props) => `${props.value} is not a valid image URL!`,
+      },
+    },
+  ],
   budget: {
     type: Number,
     required: true,
@@ -53,12 +63,23 @@ const taskSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  LocationType: {
+  locationType: {
     type: String,
     required: true,
     enum: locationType,
   },
-  address: String,
+  location: {
+    type: {
+      name: String,
+      geometry: {
+        lat: Number,
+        lng: Number,
+      },
+    },
+    required() {
+      return this.locationType === 'in-person';
+    },
+  },
   postedBy: {
     type: String,
     required: true,

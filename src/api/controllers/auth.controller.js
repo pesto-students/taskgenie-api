@@ -1,4 +1,3 @@
-const createError = require('http-errors');
 const httpStatus = require('http-status');
 const moment = require('moment');
 const { omit } = require('lodash');
@@ -25,7 +24,6 @@ function generateTokenResponse(user, accessToken) {
 async function signUp(req, res, next) {
   try {
     const { email } = req.body;
-    console.log('inside signup');
     // Check if user already exists with the given email
     const existingUser = await User.findOne({ email });
 
@@ -98,10 +96,8 @@ async function signIn(req, res, next) {
       });
     }
 
-    const { accessToken } = await user.token();
-
+    const accessToken = await user.token();
     const tokenResponse = generateTokenResponse(user, accessToken);
-
     return res.json({
       accessToken: tokenResponse.accessToken,
       refreshToken: tokenResponse.refreshToken,

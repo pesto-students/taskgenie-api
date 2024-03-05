@@ -7,7 +7,7 @@ const verifyJWT = require('../../middlewares/verifyJWT');
 const router = express.Router();
 
 router.route('/').post(verifyJWT, validateRequest(taskSchema), (req, res) => {
-  console.log(req);
+  res.json({ message: ' You are authenticated' });
 });
 
 module.exports = router;

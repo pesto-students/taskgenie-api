@@ -82,7 +82,7 @@ UserSchema.methods = {
    */
   token() {
     const payload = {
-      exp: moment().add(jwtExpirationInterval, 'minutes').unix(),
+      exp: moment().add(jwtExpirationInterval, 'days').unix(),
       iat: moment().unix(),
       sub: this._id,
     };

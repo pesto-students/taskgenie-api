@@ -9,7 +9,7 @@ const RefreshToken = require('../models/refreshToken.model');
 function generateTokenResponse(user, accessToken) {
   const tokenType = 'Bearer';
   const token = RefreshToken.generate(user).refreshToken;
-  const expiresIn = moment().add(jwtExpirationInterval, 'minutes');
+  const expiresIn = moment().add(jwtExpirationInterval, 'days');
   return {
     tokenType,
     accessToken,

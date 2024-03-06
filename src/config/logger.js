@@ -1,26 +1,16 @@
 const winston = require('winston');
 
 const logger = winston.createLogger({
-  level: 'info',
-  format: winston.format.json(),
+  level: 'info', // Set the default log level to 'info'
+  format: winston.format.combine(
+    winston.format.timestamp(), // Include timestamp in log messages
+    winston.format.json(), // Use JSON format for log messages
+  ),
   transports: [
-    new winston.transports.File({ filename: 'error.log', level: 'error' }),
-    new winston.transports.File({ filename: 'combined.log' }),
+    new winston.transports.File({ filename: '../error.log', level: '../error' }), // Log errors to a file
+    new winston.transports.File({ filename: 'combined.log' }), // Log all messages to a file
+    new winston.transports.Console(), // Log all messages to the console
   ],
 });
-
-// If we're not in production then log to the console
-if (process.env.NODE_ENV !== 'production') {
-  const transport = new winston.transports.Console({
-    format: winston.format.simple(),
-  });
-  logger.add(transport);
-}
-
-logger.stream = {
-  write: (message) => {
-    logger.info(message.trim());
-  },
-};
 
 module.exports = logger;

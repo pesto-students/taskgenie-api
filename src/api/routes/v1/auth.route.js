@@ -1,10 +1,9 @@
 const express = require('express');
 
 const router = express.Router();
-const passport = require('passport');
 const { authSchema } = require('../../validations/auth.validation');
 const controller = require('../../controllers/auth.controller');
-const { validateRequest } = require('../../middlewares/validateRequest');
+const { validateRequest } = require('../../middlewares/validateRequest.middleware');
 
 router.route('/getStatus').get((req, res) => {
   res.send('meow');

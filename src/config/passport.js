@@ -28,30 +28,28 @@ const jwt = async (payload, done) => {
 
 const googleCallback = async (accessToken, refreshToken, profile, done) => {
   try {
-    console.log(profile);
     // Check if the user is already registered in your database
     let user = await User.findOne({ 'google.id': profile.id });
 
     if (user) {
       // If the user is found, return the user
       return done(null, user);
-    } else {
-      // If the user is not found, create a new user in your database
-      user = new User({
-        google: {
-          id: profile.id,
-          email: profile.emails[0].value,
-          displayName: profile.displayName,
-          // Add other relevant fields from the Google profile if needed
-        },
-      });
-
-      // Save the new user to the database
-      await user.save();
-
-      // Return the newly created user
-      return done(null, user);
     }
+    // If the user is not found, create a new user in your database
+    user = new User({
+      google: {
+        id: profile.id,
+        email: profile.emails[0].value,
+        displayName: profile.displayName,
+        // Add other relevant fields from the Google profile if needed
+      },
+    });
+
+    // Save the new user to the database
+    await user.save();
+
+    // Return the newly created user
+    return done(null, user);
   } catch (error) {
     return done(error);
   }

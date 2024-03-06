@@ -58,6 +58,7 @@ async function signUp(req, res, next) {
   } catch (error) {
     next(error); // Pass other errors to the error handler middleware
   }
+  return null;
 }
 
 /**
@@ -138,18 +139,18 @@ async function refreshToken(req, res, next) {
   }
 }
 // logout and remove the refresh token from the database
-async function logout(req, res, next) {
-  try {
-    const { email, token } = req.body;
-    await RefreshToken.findOneAndRemove({
-      userEmail: email,
-      refreshToken: token,
-    });
-    return res.status(200).json({ message: 'logout successful' });
-  } catch (error) {
-    return next(error);
-  }
-}
+// async function logout(req, res, next) {
+//   try {
+//     const { email, token } = req.body;
+//     await RefreshToken.findOneAndRemove({
+//       userEmail: email,
+//       refreshToken: token,
+//     });
+//     return res.status(200).json({ message: 'logout successful' });
+//   } catch (error) {
+//     return next(error);
+//   }
+// }
 
 module.exports = {
   signUp,

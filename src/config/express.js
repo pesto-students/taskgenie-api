@@ -1,50 +1,49 @@
 const express = require('express');
-const morgan = require('morgan');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const helmet = require('helmet');
 const passport = require('passport');
 const createError = require('http-errors');
+const httpStatus = require('http-status');
 const routes = require('../api/routes/v1');
-const { logs } = require('./vars');
 const strategies = require('./passport');
-
+const logger = require('./logger');
+const httpLogger = require('../api/middlewares/httpLogger.middleware');
 /**
  * Express instance
  * @public
  */
 const app = express();
 
-// Request logging. dev: console | Production: file
-// initialize morgan (for logger)
-// app.use(morgan(logs));
+app.use(httpLogger); // Log HTTP requests
 
-// parse request body  params and attah them to req.body
+// parse request body params and attach them to req.body
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-// secure apps by setting various HTTP headers
+// Secure apps by setting various HTTP headers
 app.use(helmet());
 
-// enable CORS
+// Enable CORS
 app.use(cors());
 
-// enable authentication
+// Enable authentication
 passport.initialize();
 passport.use('jwt', strategies.jwt);
 passport.use('google', strategies.google);
-// Mount api routes
-app.use('/api', routes);
-// app.use('/api', (req,res) => { res.send('dog')})
 
-// catch 404 and forward to error handler
+// Mount API routes
+app.use('/api', routes);
+
+// Catch 404 and forward to error handler
 app.use((req, res, next) => {
-  next(createError.Unauthorized); // Use http-errors to create a 404 error
+  next(createError.NotFound());
 });
 
-// error handler, send stack trace only during development
+// Error handler middleware for handling errors
 app.use((err, req, res) => {
-  res.status(err.status || 500);
+  logger.error(err.stack);
+  res.status(err.status || httpStatus.INTERNAL_SERVER_ERROR);
   res.json({
     error: {
       message: err.message,
@@ -52,4 +51,5 @@ app.use((err, req, res) => {
     },
   });
 });
+
 module.exports = app;

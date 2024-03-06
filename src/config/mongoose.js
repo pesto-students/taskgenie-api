@@ -9,7 +9,7 @@ mongoose.connection.on('error', (error) => {
 });
 
 mongoose.connection.on('connected', () => {
-  console.log('Connected to MongoDB');
+  console.info('Connected to MongoDB');
 });
 
 // Print mongoose logs in dev environment

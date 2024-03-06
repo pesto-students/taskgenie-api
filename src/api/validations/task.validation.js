@@ -20,10 +20,12 @@ const taskSchema = Joi.object({
     then: Joi.date().iso().required(),
     otherwise: Joi.optional(),
   }),
-  taskDetails: Joi.string().max(1000).required(),
+  description: Joi.string().max(1000).required(),
   imageURLs: Joi.array()
     .items(Joi.string().uri().max(500).required())
     .max(3)
+    .required(),
+  budget: Joi.number().integer().min(0).max(99000)
     .required(),
 });
 

@@ -10,7 +10,6 @@ const validateRequest = (schema) => async (req, res, next) => {
   if (result.error) {
     res.status(httpStatus.BAD_REQUEST);
     return res.json({
-      status: 'error',
       code: 'validation_error',
       message: result.error.details[0].message,
     });

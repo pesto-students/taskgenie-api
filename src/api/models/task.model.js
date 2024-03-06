@@ -1,8 +1,14 @@
 const mongoose = require('mongoose');
-//  Define task statuses
+
+// Define task statuses
 const taskStatus = ['open', 'assigned', 'cancelled', 'completed'];
+
 // Define types of location
-const locationType = ['remote', 'inperson'];
+const locationType = ['remote', 'in-person'];
+
+// Define types of date
+const dateType = ['on', 'before', 'flexible'];
+
 /**
  * CommentSchema
  */
@@ -24,23 +30,20 @@ const commentSchema = mongoose.Schema({
  * Task Schema
  */
 const taskSchema = new mongoose.Schema({
-  taskId: {
+  title: {
     type: String,
     required: true,
-    unique: true,
-    index: true,
-  },
-  status: {
-    type: String,
-    default: 'open',
-    enum: taskStatus,
   },
   description: {
     type: String,
     required: true,
     maxlength: 1000,
   },
-  imageUrls: [String],
+  status: {
+    type: String,
+    default: 'open',
+    enum: taskStatus,
+  },
   budget: {
     type: Number,
     required: true,
@@ -49,26 +52,54 @@ const taskSchema = new mongoose.Schema({
     type: Date,
     required: true,
   },
-  dueDate: {
+  lastEdited: {
     type: Date,
-    required: true,
   },
-  LocationType: {
+  dateType: {
     type: String,
+    enum: dateType,
     required: true,
-    enum: locationType,
   },
-  address: String,
+  date: {
+    type: Date,
+    required() {
+      return ['on', 'before'].includes(this.dateType);
+    },
+  },
+  locationType: {
+    type: String,
+    enum: locationType,
+    required: true,
+  },
+  location: {
+    type: {
+      name: String,
+      geometry: {
+        lat: Number,
+        lng: Number,
+      },
+    },
+    required() {
+      return this.locationType === 'in-person';
+    },
+  },
+  imageUrls: [
+    {
+      type: String,
+      validate: {
+        validator(v) {
+          return /^https?:\/\/.*\.(?:png|jpg|jpeg)$/i.test(v);
+        },
+        message: (props) => `${props.value} is not a valid image URL!`,
+      },
+    },
+  ],
   postedBy: {
     type: String,
     required: true,
   },
   comments: [commentSchema],
   assignedUser: String,
-  views: {
-    type: Number,
-    default: 0,
-  },
 });
 
 /**
@@ -76,6 +107,7 @@ const taskSchema = new mongoose.Schema({
  */
 
 taskSchema.statics = {};
+
 /**
  * @typedef Task
  */

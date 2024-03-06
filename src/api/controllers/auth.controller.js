@@ -1,4 +1,3 @@
-const createError = require('http-errors');
 const httpStatus = require('http-status');
 const moment = require('moment');
 const { omit } = require('lodash');
@@ -10,7 +9,7 @@ const RefreshToken = require('../models/refreshToken.model');
 function generateTokenResponse(user, accessToken) {
   const tokenType = 'Bearer';
   const token = RefreshToken.generate(user).refreshToken;
-  const expiresIn = moment().add(jwtExpirationInterval, 'minutes');
+  const expiresIn = moment().add(jwtExpirationInterval, 'days');
   return {
     tokenType,
     accessToken,
@@ -25,7 +24,6 @@ function generateTokenResponse(user, accessToken) {
 async function signUp(req, res, next) {
   try {
     const { email } = req.body;
-    console.log('inside signup');
     // Check if user already exists with the given email
     const existingUser = await User.findOne({ email });
 
@@ -60,6 +58,7 @@ async function signUp(req, res, next) {
   } catch (error) {
     next(error); // Pass other errors to the error handler middleware
   }
+  return null;
 }
 
 /**
@@ -98,10 +97,8 @@ async function signIn(req, res, next) {
       });
     }
 
-    const { accessToken } = await user.token();
-
+    const accessToken = await user.token();
     const tokenResponse = generateTokenResponse(user, accessToken);
-
     return res.json({
       accessToken: tokenResponse.accessToken,
       refreshToken: tokenResponse.refreshToken,
@@ -142,18 +139,18 @@ async function refreshToken(req, res, next) {
   }
 }
 // logout and remove the refresh token from the database
-async function logout(req, res, next) {
-  try {
-    const { email, token } = req.body;
-    await RefreshToken.findOneAndRemove({
-      userEmail: email,
-      refreshToken: token,
-    });
-    return res.status(200).json({ message: 'logout successful' });
-  } catch (error) {
-    return next(error);
-  }
-}
+// async function logout(req, res, next) {
+//   try {
+//     const { email, token } = req.body;
+//     await RefreshToken.findOneAndRemove({
+//       userEmail: email,
+//       refreshToken: token,
+//     });
+//     return res.status(200).json({ message: 'logout successful' });
+//   } catch (error) {
+//     return next(error);
+//   }
+// }
 
 module.exports = {
   signUp,

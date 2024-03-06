@@ -47,6 +47,10 @@ const UserSchema = new mongoose.Schema(
       type: String,
       enum: ['post-task', 'find-task'],
     },
+    isSetupProfileComplete: {
+      type: Boolean,
+      default: false,
+    },
     services: {
       google: String,
     },

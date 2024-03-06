@@ -8,11 +8,11 @@ const taskSchema = Joi.object({
     then: Joi.object({
       name: Joi.string().required(),
       geometry: Joi.object({
-        lat: Joi.number().required(),
         lng: Joi.number().required(),
+        lat: Joi.number().required(),
       }).required(),
     }).required(),
-    otherwise: Joi.optional(),
+    otherwise: Joi.forbidden(),
   }),
   dateType: Joi.string().valid('on', 'before', 'flexible').required(),
   date: Joi.when('dateType', {
@@ -20,12 +20,10 @@ const taskSchema = Joi.object({
     then: Joi.date().iso().required(),
     otherwise: Joi.optional(),
   }),
-  description: Joi.string().max(1000).required(),
+  taskDetails: Joi.string().max(1000).required(),
   imageURLs: Joi.array()
-    .items(Joi.string().uri().max(500).optional())
+    .items(Joi.string().uri().max(500).required())
     .max(3)
-    .optional(),
-  budget: Joi.number().integer().min(0).max(99000)
     .required(),
 });
 

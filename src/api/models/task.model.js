@@ -73,15 +73,17 @@ const taskSchema = new mongoose.Schema({
   },
   location: {
     type: {
-      name: String,
-      geometry: {
-        lat: Number,
-        lng: Number,
-      },
+      type: String,
+      enum: ['Point'],
+      required: true,
     },
-    required() {
-      return this.locationType === 'in-person';
+    coordinates: {
+      type: [Number], // [longitude, latitude]
+      required: true,
     },
+  },
+  locationName: {
+    type: String,
   },
   imageUrls: [
     {

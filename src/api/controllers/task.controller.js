@@ -126,31 +126,36 @@ exports.getTasks = async (req, res, next) => {
   try {
     // Default parameters
     const defaultDistance = 50;
-    const defaultLocation = { lat: 26.9124, lng: 75.7873 }; // Default location of Jaipur, Rajasthan
+    const defaultLng = 75.7873; // Default location of Jaipur, Rajasthan
+    const defaultLat = 26.9124;
     const defaultLocationType = 'in-person';
     const defaultPriceRange = { min: 100, max: 99000 };
     const defaultSortBy = 'createdAt';
 
     // Extract query parameters
-    const { distance, location, locationType, priceRange, sortBy } = req.query;
+    const { title, distance, lng, lat, locationType, priceRange, sortBy } = req.query;
 
-    // Set default values if not provided
     const searchDistance = distance || defaultDistance;
-    const searchLocation = location || defaultLocation;
     const searchLocationType = locationType || defaultLocationType;
     const searchPriceRange = priceRange || defaultPriceRange;
     const searchSortBy = sortBy || defaultSortBy;
 
     // Build query based on parameters
     const query = {};
+    // search by title
+    if (title && title.length > 0) {
+      query.title = { $regex: title, $options: 'i' };
+    }
 
     // Implement search by distance and location
-    if (location) {
+    if (searchLocationType === 'in-person') {
+      const searchLat = lat && lng ? lat : defaultLat;
+      const searchLng = lat && lng ? lng : defaultLng;
       query.location = {
         $nearSphere: {
           $geometry: {
             type: 'Point',
-            coordinates: [searchLocation.lng, searchLocation.lat],
+            coordinates: [searchLng, searchLat],
           },
           $maxDistance: searchDistance * 1000, // Convert to meters
         },
@@ -161,10 +166,8 @@ exports.getTasks = async (req, res, next) => {
     if (locationType) {
       query.locationType = searchLocationType;
     }
-
     // Implement search by price range
     query.budget = { $gte: searchPriceRange.min, $lte: searchPriceRange.max };
-
     // Get tasks based on the constructed query
     const tasks = await Task.find(query).sort(searchSortBy);
 

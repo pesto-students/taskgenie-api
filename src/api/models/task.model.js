@@ -74,11 +74,9 @@ const taskSchema = new mongoose.Schema({
   location: {
     type: {
       type: String,
-      required: true,
     },
     coordinates: {
       type: [Number], // [longitude, latitude]
-      required: true,
     },
   },
   locationName: {

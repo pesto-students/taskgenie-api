@@ -19,6 +19,14 @@ exports.addTask = async (req, res, next) => {
       budget,
       imageURLs,
     } = req.body;
+
+    let taskLocation = null;
+    if (locationType !== 'remote') {
+      taskLocation = {
+        type: 'Point',
+        coordinates: location.coordinates,
+      };
+    }
     const taskData = {
       title,
       description,
@@ -29,11 +37,8 @@ exports.addTask = async (req, res, next) => {
       dateType,
       date,
       locationType,
-      location: {
-        type: 'Point',
-        coordinates: location.coordinates,
-      },
-      locationName: location.name,
+      location: taskLocation,
+      locationName: location?.name ?? null,
       imageURLs,
       postedBy: userId,
       comments: [],

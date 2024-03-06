@@ -30,7 +30,7 @@ exports.addTask = async (req, res, next) => {
       date,
       locationType,
       location: {
-        type: 'point',
+        type: 'Point',
         coordinates: location.coordinates,
       },
       locationName: location.name,

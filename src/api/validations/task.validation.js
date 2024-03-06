@@ -7,10 +7,7 @@ const taskSchema = Joi.object({
     is: 'in-person',
     then: Joi.object({
       name: Joi.string().required(),
-      geometry: Joi.object({
-        lng: Joi.number().required(),
-        lat: Joi.number().required(),
-      }).required(),
+      coordinates: Joi.array().items(Joi.number()).length(2).required(),
     }).required(),
     otherwise: Joi.forbidden(),
   }),
@@ -20,10 +17,12 @@ const taskSchema = Joi.object({
     then: Joi.date().iso().required(),
     otherwise: Joi.optional(),
   }),
-  taskDetails: Joi.string().max(1000).required(),
+  description: Joi.string().max(1000).required(),
   imageURLs: Joi.array()
     .items(Joi.string().uri().max(500).required())
     .max(3)
+    .required(),
+  budget: Joi.number().integer().min(100).max(99000)
     .required(),
 });
 

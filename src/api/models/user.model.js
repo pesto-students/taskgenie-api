@@ -31,6 +31,26 @@ const UserSchema = new mongoose.Schema(
       minlength: 8,
       maxlength: 128,
     },
+    firstName: {
+      type: String,
+      trim: true,
+    },
+    lastName: {
+      type: String,
+      trim: true,
+    },
+    city: {
+      type: String,
+      trim: true,
+    },
+    choice: {
+      type: String,
+      enum: ['post-task', 'find-task'],
+    },
+    isSetupProfileComplete: {
+      type: Boolean,
+      default: false,
+    },
     services: {
       google: String,
     },

@@ -30,27 +30,20 @@ const commentSchema = mongoose.Schema({
  * Task Schema
  */
 const taskSchema = new mongoose.Schema({
-  status: {
+  title: {
     type: String,
-    default: 'open',
-    enum: taskStatus,
+    required: true,
   },
   description: {
     type: String,
     required: true,
     maxlength: 1000,
   },
-  imageUrls: [
-    {
-      type: String,
-      validate: {
-        validator(v) {
-          return /^https?:\/\/.*\.(?:png|jpg|jpeg)$/i.test(v);
-        },
-        message: (props) => `${props.value} is not a valid image URL!`,
-      },
-    },
-  ],
+  status: {
+    type: String,
+    default: 'open',
+    enum: taskStatus,
+  },
   budget: {
     type: Number,
     required: true,
@@ -90,6 +83,17 @@ const taskSchema = new mongoose.Schema({
       return this.locationType === 'in-person';
     },
   },
+  imageUrls: [
+    {
+      type: String,
+      validate: {
+        validator(v) {
+          return /^https?:\/\/.*\.(?:png|jpg|jpeg)$/i.test(v);
+        },
+        message: (props) => `${props.value} is not a valid image URL!`,
+      },
+    },
+  ],
   postedBy: {
     type: String,
     required: true,

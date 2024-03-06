@@ -10,8 +10,8 @@ const verifyJWT = (req, res, next) => {
         .status(401)
         .json({ message: 'Authorization token is missing' });
     }
-    const decoded = jwt.verify(token, jwtSecret);
-    req.user = decoded;
+    const { sub } = jwt.verify(token, jwtSecret);
+    req.user = sub;
     next();
   } catch (error) {
     return res.status(401).json({ message: 'Invalid token' });

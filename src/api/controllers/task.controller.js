@@ -5,7 +5,33 @@ const Task = require('../models/task.model');
 // Controller method to add a new task
 exports.addTask = async (req, res, next) => {
   try {
-    const taskData = req.body;
+    const userId = req.user;
+    const {
+      title,
+      locationType,
+      description,
+      location,
+      dateType,
+      date,
+      budget,
+      imageURLs,
+    } = req.body;
+    const taskData = {
+      title,
+      description,
+      status: 'open',
+      budget,
+      createdOn: new Date(),
+      lastEdited: null,
+      dateType,
+      date,
+      locationType,
+      location,
+      imageURLs,
+      postedBy: userId,
+      comments: [],
+      assignedUser: null,
+    };
     const newTask = await Task.create(taskData);
     res.status(httpStatus.CREATED).json(newTask);
   } catch (error) {

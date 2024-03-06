@@ -2,6 +2,9 @@ const httpStatus = require('http-status');
 const CreateHttpError = require('http-errors');
 const Task = require('../models/task.model');
 
+/**
+ * My Tasks
+ */
 // Controller method to add a new task
 exports.addTask = async (req, res, next) => {
   try {
@@ -16,6 +19,14 @@ exports.addTask = async (req, res, next) => {
       budget,
       imageURLs,
     } = req.body;
+
+    let taskLocation = null;
+    if (locationType !== 'remote') {
+      taskLocation = {
+        type: 'Point',
+        coordinates: location.coordinates,
+      };
+    }
     const taskData = {
       title,
       description,
@@ -26,7 +37,8 @@ exports.addTask = async (req, res, next) => {
       dateType,
       date,
       locationType,
-      location,
+      location: taskLocation,
+      locationName: location?.name ?? null,
       imageURLs,
       postedBy: userId,
       comments: [],
@@ -38,7 +50,6 @@ exports.addTask = async (req, res, next) => {
     next(error);
   }
 };
-
 // Controller method to get all tasks by a user
 exports.getAllTasksByUser = async (req, res, next) => {
   try {
@@ -71,7 +82,7 @@ exports.getAllTasksByUser = async (req, res, next) => {
     next(error);
   }
 };
-
+// Cancel task
 exports.deleteTask = async (req, res, next) => {
   try {
     const userId = req.user; // Assuming you're extracting user ID from JWT token
@@ -105,3 +116,68 @@ exports.deleteTask = async (req, res, next) => {
     next(error); // Pass any caught errors to the error handling middleware
   }
 };
+
+/**
+ * Browse Tasks
+ */
+
+// Controller method to browse tasks
+exports.getTasks = async (req, res, next) => {
+  try {
+    // Default parameters
+    const defaultDistance = 50;
+    const defaultLng = 75.7873; // Default location of Jaipur, Rajasthan
+    const defaultLat = 26.9124;
+    const defaultLocationType = 'in-person';
+    const defaultPriceRange = { min: 100, max: 99000 };
+    const defaultSortBy = 'createdAt';
+
+    // Extract query parameters
+    const { title, distance, lng, lat, locationType, priceRange, sortBy } = req.query;
+
+    const searchDistance = distance || defaultDistance;
+    const searchLocationType = locationType || defaultLocationType;
+    const searchPriceRange = priceRange || defaultPriceRange;
+    const searchSortBy = sortBy || defaultSortBy;
+
+    // Build query based on parameters
+    const query = {};
+    // search by title
+    if (title && title.length > 0) {
+      query.title = { $regex: title, $options: 'i' };
+    }
+
+    // Implement search by distance and location
+    if (searchLocationType === 'in-person') {
+      const searchLat = lat && lng ? lat : defaultLat;
+      const searchLng = lat && lng ? lng : defaultLng;
+      query.location = {
+        $nearSphere: {
+          $geometry: {
+            type: 'Point',
+            coordinates: [searchLng, searchLat],
+          },
+          $maxDistance: searchDistance * 1000, // Convert to meters
+        },
+      };
+    }
+
+    // Implement search by location type
+    if (locationType) {
+      query.locationType = searchLocationType;
+    }
+    // Implement search by price range
+    query.budget = { $gte: searchPriceRange.min, $lte: searchPriceRange.max };
+    // Get tasks based on the constructed query
+    const tasks = await Task.find(query).sort(searchSortBy);
+
+    // Return tasks as response
+    res.status(httpStatus.OK).json(tasks);
+  } catch (error) {
+    next(error);
+  }
+};
+
+// get details of a task
+
+// add comment to a task

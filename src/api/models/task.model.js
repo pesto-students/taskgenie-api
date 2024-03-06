@@ -73,15 +73,14 @@ const taskSchema = new mongoose.Schema({
   },
   location: {
     type: {
-      name: String,
-      geometry: {
-        lat: Number,
-        lng: Number,
-      },
+      type: String,
     },
-    required() {
-      return this.locationType === 'in-person';
+    coordinates: {
+      type: [Number], // [longitude, latitude]
     },
+  },
+  locationName: {
+    type: String,
   },
   imageUrls: [
     {
@@ -101,7 +100,8 @@ const taskSchema = new mongoose.Schema({
   comments: [commentSchema],
   assignedUser: String,
 });
-
+// Indexing for GeoJSON
+taskSchema.index({ location: '2dsphere' });
 /**
  * Statics
  */

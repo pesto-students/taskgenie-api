@@ -4,8 +4,8 @@ const User = require('../models/user.model');
 
 exports.setupProfile = async (req, res, next) => {
   try {
-    const { firstName, lastName, city, choice } = req.body;
-    const userId = req.user._id;
+    const { firstName, lastName, city } = req.body;
+    const userId = req.user.sub;
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -13,7 +13,6 @@ exports.setupProfile = async (req, res, next) => {
         firstName,
         lastName,
         city,
-        choice,
       },
       { new: true },
     );

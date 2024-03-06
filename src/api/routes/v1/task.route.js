@@ -5,13 +5,14 @@ const {
 } = require('../../middlewares/validateRequest.middleware');
 const verifyJWT = require('../../middlewares/verifyJWT.middleware');
 
-const { addTask } = require('../../controllers/task.controller');
+const {
+  addTask,
+  getAllTasksByUser,
+  deleteTask,
+} = require('../../controllers/task.controller');
 
 const router = express.Router();
-
+router.route('/').get(verifyJWT, getAllTasksByUser);
 router.route('/').post(verifyJWT, validateRequest(taskSchema), addTask);
-// router.put('/:taskId/cancel', verifyJWT, cancelMyTask);
-// router.get('/my-tasks', verifyJWT, viewAllMyTasks);
-// router.put('/:taskId/assign', verifyJWT, assignMyTask);
-// router.get('/:taskId/details', verifyJWT, viewTaskDetails);
+router.route('/:taskId').delete(verifyJWT, deleteTask);
 module.exports = router;

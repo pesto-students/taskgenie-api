@@ -12,7 +12,7 @@ const taskSchema = Joi.object({
         lng: Joi.number().required(),
       }).required(),
     }).required(),
-    otherwise: Joi.forbidden(),
+    otherwise: Joi.optional(),
   }),
   dateType: Joi.string().valid('on', 'before', 'flexible').required(),
   date: Joi.when('dateType', {
@@ -22,9 +22,9 @@ const taskSchema = Joi.object({
   }),
   description: Joi.string().max(1000).required(),
   imageURLs: Joi.array()
-    .items(Joi.string().uri().max(500).required())
+    .items(Joi.string().uri().max(500).optional())
     .max(3)
-    .required(),
+    .optional(),
   budget: Joi.number().integer().min(0).max(99000)
     .required(),
 });

@@ -35,13 +35,14 @@ passport.use('google', strategies.google);
 // Mount API routes
 app.use('/api', routes);
 
-// Catch 404 and forward to error handler
+// // Catch 404 and forward to error handler
 app.use((req, res, next) => {
   next(createError.NotFound());
 });
 
 // Error handler middleware for handling errors
-app.use((err, req, res) => {
+// eslint-disable-next-line no-unused-vars
+app.use((err, req, res, next) => {
   logger.error(err.stack);
   res.status(err.status || httpStatus.INTERNAL_SERVER_ERROR);
   res.json({

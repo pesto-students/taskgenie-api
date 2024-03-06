@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const httpStatus = require('http-status');
 const { jwtSecret } = require('../../config/vars');
 
 const verifyJWT = (req, res, next) => {
@@ -14,7 +15,9 @@ const verifyJWT = (req, res, next) => {
     req.user = sub;
     next();
   } catch (error) {
-    return res.status(401).json({ message: 'Invalid token' });
+    return res
+      .status(httpStatus.UNAUTHORIZED)
+      .json({ message: 'Invalid token' });
   }
   return null;
 };

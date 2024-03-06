@@ -1,7 +1,6 @@
 const mongoose = require('mongoose');
 const logger = require('./logger');
 const { mongo, env } = require('./vars');
-
 // Exit application on error
 mongoose.connection.on('error', (error) => {
   logger.error(`MongoDB connection error: ${error}`);
@@ -9,7 +8,7 @@ mongoose.connection.on('error', (error) => {
 });
 
 mongoose.connection.on('connected', () => {
-  console.info('Connected to MongoDB');
+  logger.info('Connected to MongoDB');
 });
 
 // Print mongoose logs in dev environment
@@ -25,7 +24,7 @@ if (env === 'development') {
 
 exports.connect = () => {
   mongoose.connect(mongo.uri).then(() => {
-    console.log('mongoDB connected ....');
+    logger.info('mongodb connected');
   });
   return mongoose.connection;
 };

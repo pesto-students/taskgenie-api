@@ -103,7 +103,8 @@ const taskSchema = new mongoose.Schema({
   comments: [commentSchema],
   assignedUser: String,
 });
-
+// Indexing for GeoJSON
+taskSchema.index({ location: '2dsphere' });
 /**
  * Statics
  */

@@ -28,3 +28,39 @@ exports.setupProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getProfileStatus = async (req, res, next) => {
+  const userId = req.params.id;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(createError(httpStatus.NOT_FOUND, 'User not found'));
+    }
+
+    // Return the profile status
+    res.status(200).json({ isSetupProfileComplete: user.isSetupProfileComplete, userId });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateProfileStatus = async (req, res, next) => {
+  const userId = req.params.id;
+  const { isSetupProfileComplete } = req.body;
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update the isSetupProfileComplete field
+    user.isSetupProfileComplete = isSetupProfileComplete;
+    await user.save();
+
+    res.status(200).json({ message: 'User profile updated successfully' });
+  } catch (error) {
+    next(error);
+  }
+};

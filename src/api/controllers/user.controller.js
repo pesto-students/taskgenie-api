@@ -6,6 +6,8 @@ exports.setupProfile = async (req, res, next) => {
   try {
     const { firstName, lastName, city } = req.body;
     const userId = req.user.sub;
+    // const userId = req.params.id;
+    console.log('USERID:', userId);
 
     const updatedUser = await User.findByIdAndUpdate(
       userId,
@@ -31,6 +33,7 @@ exports.setupProfile = async (req, res, next) => {
 
 exports.getProfileStatus = async (req, res, next) => {
   const userId = req.params.id;
+  // const userId = req.user.sub;
 
   try {
     const user = await User.findById(userId);
@@ -39,7 +42,7 @@ exports.getProfileStatus = async (req, res, next) => {
     }
 
     // Return the profile status
-    res.status(200).json({ isSetupProfileComplete: user.isSetupProfileComplete, userId });
+    return res.status(200).json({ isSetupProfileComplete: user.isSetupProfileComplete, userId });
   } catch (error) {
     next(error);
   }
@@ -47,6 +50,7 @@ exports.getProfileStatus = async (req, res, next) => {
 
 exports.updateProfileStatus = async (req, res, next) => {
   const userId = req.params.id;
+  // const userId = req.user.sub;
   const { isSetupProfileComplete } = req.body;
 
   try {

@@ -13,11 +13,11 @@ router
   .patch(verifyJWT, validateRequest(setupProfileSchema), setupProfile);
 
 router
-  .route('/user/:id/profileStatus')
+  .route('/:id/profileStatus')
   .get(verifyJWT, getProfileStatus);
 
 router
-  .route('user/:id/profileStatus')
+  .route('/:id/profileStatus')
   .patch(verifyJWT, updateProfileStatus);
 
 module.exports = router;

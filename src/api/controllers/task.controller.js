@@ -55,25 +55,21 @@ exports.getAllTasksByUser = async (req, res, next) => {
   try {
     const userId = req.user;
     // eslint-disable-next-line prefer-const
-    let { status, title } = req.query;
+    let { status, searchText } = req.query;
 
     const query = { postedBy: userId };
 
     // Set default status filter if status query parameter is not provided
     if (!status) {
       status = ['open', 'assigned'];
-    } else {
-      // If status is provided, convert it to an array if it's a string
-      status = Array.isArray(status) ? status : [status];
     }
 
     // Include status filter in the query
     query.status = { $in: status };
 
-    if (title) {
-      query.title = { $regex: new RegExp(title, 'i') };
+    if (searchText) {
+      query.title = { $regex: new RegExp(searchText, 'i') };
     }
-
     const tasks = await Task.find(query);
 
     // Set status to 200 OK and send the tasks as a response

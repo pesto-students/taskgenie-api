@@ -43,13 +43,11 @@ const commentController = {
     try {
       const { taskId, commentId } = req.params;
       const { userId, name, message } = req.body;
-      console.log('ravi', taskId, commentId);
       // Find the task by taskId
       const task = await Task.findById(taskId);
       if (!task) {
         return res.status(404).json({ error: 'Task not found' });
       }
-      console.log(task);
       // Find the comment by commentId within the task
       const comment = task.comments.id(commentId);
       if (!comment) {

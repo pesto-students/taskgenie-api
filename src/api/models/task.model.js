@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-
+const { commentSchema } = require('./comment.model');
 // Define task statuses
 const taskStatus = ['open', 'assigned', 'cancelled', 'completed'];
 
@@ -8,23 +8,6 @@ const locationType = ['remote', 'in-person'];
 
 // Define types of date
 const dateType = ['on', 'before', 'flexible'];
-
-/**
- * CommentSchema
- */
-const commentSchema = mongoose.Schema({
-  userId: {
-    type: String,
-    required: true,
-  },
-  name: String,
-  createdOn: Date,
-  message: {
-    type: String,
-    required: true,
-  },
-  replies: [this],
-});
 
 /**
  * Task Schema

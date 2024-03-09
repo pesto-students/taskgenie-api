@@ -129,7 +129,8 @@ exports.getTasks = async (req, res, next) => {
     const defaultSortBy = 'createdAt';
 
     // Extract query parameters
-    const { title, distance, lng, lat, locationType, priceRange, sortBy } = req.query;
+    const { title, distance, lng, lat, locationType, priceRange, sortBy } =
+      req.query;
 
     const searchDistance = distance || defaultDistance;
     const searchLocationType = locationType || defaultLocationType;
@@ -175,5 +176,20 @@ exports.getTasks = async (req, res, next) => {
 };
 
 // get details of a task
-
-// add comment to a task
+exports.getTaskById = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(httpStatus.NOT_FOUND).json({ error: 'Task not found' });
+    }
+    res.status(httpStatus.OK).json(task);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: 'Invalid task ID' });
+    }
+    next(error);
+  }
+};

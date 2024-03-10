@@ -1,10 +1,10 @@
 // Import necessary modules or models
 const Task = require('../models/task.model');
-const { Comment } = require('../models/comment.model');
+const { Question } = require('../models/question.model');
 
-const commentController = {
-  // Controller function to add a comment to a task
-  addCommentToTask: async (req, res) => {
+const questionController = {
+  // Controller function to add a question to a task
+  addQuestionToTask: async (req, res) => {
     try {
       const { taskId } = req.params;
       const { userId, name, message } = req.body;
@@ -15,47 +15,47 @@ const commentController = {
         return res.status(404).json({ error: 'Task not found' });
       }
 
-      // Create a new comment
-      const comment = new Comment({
+      // Create a new question
+      const question = new Question({
         userId,
         name,
         message,
       });
 
-      // Save the comment to the database
-      await comment.save();
+      // Save the question to the database
+      await question.save();
 
-      // Add the comment to the task's comments array
-      task.comments.push(comment);
+      // Add the question to the task's questions array
+      task.questions.push(question);
       await task.save();
 
       res
         .status(201)
-        .json({ message: 'Comment added to task successfully', comment });
+        .json({ message: 'Question added to task successfully', question });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
 
-  // Controller function to add a reply to a comment
-  addReplyToComment: async (req, res) => {
+  // Controller function to add a reply to a question
+  addReplyToQuestion: async (req, res) => {
     try {
-      const { taskId, commentId } = req.params;
+      const { taskId, questionId } = req.params;
       const { userId, name, message } = req.body;
       // Find the task by taskId
       const task = await Task.findById(taskId);
       if (!task) {
         return res.status(404).json({ error: 'Task not found' });
       }
-      // Find the comment by commentId within the task
-      const comment = task.comments.id(commentId);
-      if (!comment) {
-        return res.status(404).json({ error: 'Comment not found' });
+      // Find the question by questionId within the task
+      const question = task.questions.id(questionId);
+      if (!question) {
+        return res.status(404).json({ error: 'Question not found' });
       }
 
       // Create a new reply
-      const reply = new Comment({
+      const reply = new Question({
         userId,
         name,
         message,
@@ -64,13 +64,13 @@ const commentController = {
       // Save the reply to the database
       await reply.save();
 
-      // Add the reply to the comment's replies array
-      comment.replies.push(reply);
+      // Add the reply to the question's replies array
+      question.replies.push(reply);
       await task.save();
 
       res
         .status(201)
-        .json({ message: 'Reply added to comment successfully', reply });
+        .json({ message: 'Reply added to question successfully', reply });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });
@@ -78,4 +78,4 @@ const commentController = {
   },
 };
 
-module.exports = commentController;
+module.exports = questionController;

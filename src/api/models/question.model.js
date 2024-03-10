@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 /**
- * CommentSchema
+ * Question Schema
  */
-const commentSchema = mongoose.Schema({
+const questionSchema = mongoose.Schema({
   userId: {
     type: String,
     required: true,
@@ -13,10 +13,12 @@ const commentSchema = mongoose.Schema({
     type: String,
     required: true,
   },
-  replies: [this],
+  reply: {
+    type: String,
+  },
 });
 
 module.exports = {
-  Comment: mongoose.model('Comment', commentSchema),
-  commentSchema,
+  Question: mongoose.model('Question', questionSchema),
+  questionSchema,
 };

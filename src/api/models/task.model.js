@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const { commentSchema } = require('./comment.model');
+const { questionSchema } = require('./question.model');
 // Define task statuses
 const taskStatus = ['open', 'assigned', 'cancelled', 'completed'];
 
@@ -80,7 +80,7 @@ const taskSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  comments: [commentSchema],
+  questions: [questionSchema],
   assignedUser: String,
 });
 // Indexing for GeoJSON

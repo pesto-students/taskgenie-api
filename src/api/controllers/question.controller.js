@@ -1,5 +1,6 @@
 // Import necessary modules or models
 const Task = require('../models/task.model');
+const User = require('../models/user.model');
 const { Question } = require('../models/question.model');
 
 const questionController = {
@@ -7,8 +8,9 @@ const questionController = {
   addQuestionToTask: async (req, res) => {
     try {
       const { taskId } = req.params;
-      const { userId, name, message } = req.body;
-
+      const userId = req.user;
+      const { question } = req.body;
+      const { name } = await User.findById(userId);
       // Find the task by taskId
       const task = await Task.findById(taskId);
       if (!task) {
@@ -16,22 +18,22 @@ const questionController = {
       }
 
       // Create a new question
-      const question = new Question({
+      const newQuestion = new Question({
         userId,
         name,
-        message,
+        message: question,
       });
 
       // Save the question to the database
-      await question.save();
+      await newQuestion.save();
 
       // Add the question to the task's questions array
-      task.questions.push(question);
+      task.questions.push(newQuestion);
       await task.save();
 
       res
         .status(201)
-        .json({ message: 'Question added to task successfully', question });
+        .json({ message: 'Question added to task successfully', newQuestion });
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: 'Internal server error' });

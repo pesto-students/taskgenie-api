@@ -81,7 +81,9 @@ const taskSchema = new mongoose.Schema({
     required: true,
   },
   questions: [questionSchema],
-  assignedUser: String,
+  acceptedQuote: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
 });
 // Indexing for GeoJSON
 taskSchema.index({ location: '2dsphere' });

@@ -1,6 +1,7 @@
 const httpStatus = require('http-status');
 const CreateHttpError = require('http-errors');
 const Task = require('../models/task.model');
+const Quote = require('../models/quote.model');
 
 /**
  * My Tasks
@@ -130,12 +131,14 @@ exports.getTasks = async (req, res, next) => {
     const defaultStatus = 'open';
 
     // Extract query parameters
-    const { distance, lng, lat, locationType, priceRange, sortBy, status } = req.query;
+    const { distance, lng, lat, locationType, priceRange, sortBy, status } =
+      req.query;
 
     const searchDistance = distance || defaultDistance;
-    const searchLocationType = locationType === 'all' || !locationType
-      ? defaultLocationType
-      : locationType;
+    const searchLocationType =
+      locationType === 'all' || !locationType
+        ? defaultLocationType
+        : locationType;
     const searchPriceRange = priceRange || defaultPriceRange;
     const searchSortBy = sortBy || defaultSortBy;
     const searchStatus = status || defaultStatus;
@@ -184,7 +187,58 @@ exports.getTaskById = async (req, res, next) => {
     if (!task) {
       return res.status(httpStatus.NOT_FOUND).json({ error: 'Task not found' });
     }
-    res.status(httpStatus.OK).json(task);
+    const taskObject = task.toObject();
+    // Fetch quotes associated with this task
+    const quotes = await Quote.find({ taskId });
+    taskObject.quotes = quotes;
+    res.status(httpStatus.OK).json(taskObject);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: 'Invalid task ID' });
+    }
+    next(error);
+  }
+};
+
+/**
+ * Quotes
+ */
+/**
+ * Todo
+ * 1. User should have access to applied tasks so we can keep separate collection.
+ */
+exports.addQuote = async (req, res, next) => {
+  try {
+    console.log('body', req.body);
+    const { taskId } = req.params;
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(httpStatus.NOT_FOUND).json({ error: 'Task not found' });
+    }
+    const userId = req.user;
+    // Check if the user has already quoted for this task
+    const existingQuote = await Quote.findOne({ taskId, userId });
+    if (existingQuote) {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: 'User has already quoted for this task' });
+    }
+    const { price, message } = req.body;
+    const newQuote = new Quote({
+      taskId,
+      userId,
+      price,
+      message,
+      status: 'applied',
+    });
+
+    // Save the new quote to the database
+    await newQuote.save();
+    res
+      .status(httpStatus.CREATED)
+      .json({ message: 'Quote added', quote: newQuote });
   } catch (error) {
     if (error.name === 'CastError') {
       return res

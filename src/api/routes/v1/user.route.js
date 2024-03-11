@@ -1,12 +1,23 @@
 const express = require('express');
-const controller = require('../../controllers/user.controller');
+const { setupProfile, getProfileStatus } = require('../../controllers/user.controller');
+const verifyJWT = require('../../middlewares/verifyJWT.middleware');
+const {
+  validateRequest,
+} = require('../../middlewares/validateRequest.middleware');
+const setupProfileSchema = require('../../validations/setupProfileValidation');
 
 const router = express.Router();
 
 router
-  // setup-profile route
+  .route('/:id')
+  .patch(verifyJWT, validateRequest(setupProfileSchema), setupProfile);
 
-  .route('/setup-profile')
-  .post(controller.setupProfile);
+router
+  .route('/:id/profileStatus')
+  .get(verifyJWT, getProfileStatus);
+
+// router
+//   .route('/:id/profileStatus')
+//   .patch(verifyJWT, updateProfileStatus);
 
 module.exports = router;

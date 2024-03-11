@@ -41,7 +41,7 @@ exports.addTask = async (req, res, next) => {
       locationName: location?.name ?? null,
       imageURLs,
       postedBy: userId,
-      comments: [],
+      questions: [],
       assignedUser: null,
     };
     const newTask = await Task.create(taskData);
@@ -55,25 +55,21 @@ exports.getAllTasksByUser = async (req, res, next) => {
   try {
     const userId = req.user;
     // eslint-disable-next-line prefer-const
-    let { status, title } = req.query;
+    let { status, searchText } = req.query;
 
     const query = { postedBy: userId };
 
     // Set default status filter if status query parameter is not provided
     if (!status) {
       status = ['open', 'assigned'];
-    } else {
-      // If status is provided, convert it to an array if it's a string
-      status = Array.isArray(status) ? status : [status];
     }
 
     // Include status filter in the query
     query.status = { $in: status };
 
-    if (title) {
-      query.title = { $regex: new RegExp(title, 'i') };
+    if (searchText) {
+      query.title = { $regex: new RegExp(searchText, 'i') };
     }
-
     const tasks = await Task.find(query);
 
     // Set status to 200 OK and send the tasks as a response
@@ -128,27 +124,25 @@ exports.getTasks = async (req, res, next) => {
     const defaultDistance = 50;
     const defaultLng = 75.7873; // Default location of Jaipur, Rajasthan
     const defaultLat = 26.9124;
-    const defaultLocationType = 'in-person';
+    const defaultLocationType = ['in-person', 'remote'];
     const defaultPriceRange = { min: 100, max: 99000 };
     const defaultSortBy = 'createdAt';
+    const defaultStatus = 'open';
 
     // Extract query parameters
-    const { title, distance, lng, lat, locationType, priceRange, sortBy } = req.query;
+    const { distance, lng, lat, locationType, priceRange, sortBy, status } = req.query;
 
     const searchDistance = distance || defaultDistance;
-    const searchLocationType = locationType || defaultLocationType;
+    const searchLocationType = locationType === 'all' || !locationType
+      ? defaultLocationType
+      : locationType;
     const searchPriceRange = priceRange || defaultPriceRange;
     const searchSortBy = sortBy || defaultSortBy;
-
+    const searchStatus = status || defaultStatus;
     // Build query based on parameters
     const query = {};
-    // search by title
-    if (title && title.length > 0) {
-      query.title = { $regex: title, $options: 'i' };
-    }
-
     // Implement search by distance and location
-    if (searchLocationType === 'in-person') {
+    if (searchLocationType !== 'remote') {
       const searchLat = lat && lng ? lat : defaultLat;
       const searchLng = lat && lng ? lng : defaultLng;
       query.location = {
@@ -161,10 +155,14 @@ exports.getTasks = async (req, res, next) => {
         },
       };
     }
-
+    query.status = searchStatus;
     // Implement search by location type
     if (locationType) {
-      query.locationType = searchLocationType;
+      if (Array.isArray(searchLocationType)) {
+        query.locationType = { $in: searchLocationType };
+      } else {
+        query.locationType = searchLocationType;
+      }
     }
     // Implement search by price range
     query.budget = { $gte: searchPriceRange.min, $lte: searchPriceRange.max };
@@ -179,5 +177,20 @@ exports.getTasks = async (req, res, next) => {
 };
 
 // get details of a task
-
-// add comment to a task
+exports.getTaskById = async (req, res, next) => {
+  try {
+    const { taskId } = req.params;
+    const task = await Task.findById(taskId);
+    if (!task) {
+      return res.status(httpStatus.NOT_FOUND).json({ error: 'Task not found' });
+    }
+    res.status(httpStatus.OK).json(task);
+  } catch (error) {
+    if (error.name === 'CastError') {
+      return res
+        .status(httpStatus.BAD_REQUEST)
+        .json({ error: 'Invalid task ID' });
+    }
+    next(error);
+  }
+};

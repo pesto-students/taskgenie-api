@@ -110,6 +110,7 @@ async function signIn(req, res, next) {
         id: user.id,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
+        isSetupProfileComplete: user.isSetupProfileComplete,
       },
     });
   } catch (error) {

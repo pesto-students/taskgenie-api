@@ -1,5 +1,5 @@
 const express = require('express');
-const { setupProfile, getProfileStatus, updateProfileStatus } = require('../../controllers/user.controller');
+const { setupProfile, getProfileStatus } = require('../../controllers/user.controller');
 const verifyJWT = require('../../middlewares/verifyJWT.middleware');
 const {
   validateRequest,
@@ -16,8 +16,8 @@ router
   .route('/:id/profileStatus')
   .get(verifyJWT, getProfileStatus);
 
-router
-  .route('/:id/profileStatus')
-  .patch(verifyJWT, updateProfileStatus);
+// router
+//   .route('/:id/profileStatus')
+//   .patch(verifyJWT, updateProfileStatus);
 
 module.exports = router;

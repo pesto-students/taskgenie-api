@@ -41,7 +41,7 @@ exports.addTask = async (req, res, next) => {
       locationName: location?.name ?? null,
       imageURLs,
       postedBy: userId,
-      comments: [],
+      questions: [],
       assignedUser: null,
     };
     const newTask = await Task.create(taskData);
@@ -124,28 +124,25 @@ exports.getTasks = async (req, res, next) => {
     const defaultDistance = 50;
     const defaultLng = 75.7873; // Default location of Jaipur, Rajasthan
     const defaultLat = 26.9124;
-    const defaultLocationType = 'in-person';
+    const defaultLocationType = ['in-person', 'remote'];
     const defaultPriceRange = { min: 100, max: 99000 };
     const defaultSortBy = 'createdAt';
+    const defaultStatus = 'open';
 
     // Extract query parameters
-    const { title, distance, lng, lat, locationType, priceRange, sortBy } =
-      req.query;
+    const { distance, lng, lat, locationType, priceRange, sortBy, status } = req.query;
 
     const searchDistance = distance || defaultDistance;
-    const searchLocationType = locationType || defaultLocationType;
+    const searchLocationType = locationType === 'all' || !locationType
+      ? defaultLocationType
+      : locationType;
     const searchPriceRange = priceRange || defaultPriceRange;
     const searchSortBy = sortBy || defaultSortBy;
-
+    const searchStatus = status || defaultStatus;
     // Build query based on parameters
     const query = {};
-    // search by title
-    if (title && title.length > 0) {
-      query.title = { $regex: title, $options: 'i' };
-    }
-
     // Implement search by distance and location
-    if (searchLocationType === 'in-person') {
+    if (searchLocationType !== 'remote') {
       const searchLat = lat && lng ? lat : defaultLat;
       const searchLng = lat && lng ? lng : defaultLng;
       query.location = {
@@ -158,10 +155,14 @@ exports.getTasks = async (req, res, next) => {
         },
       };
     }
-
+    query.status = searchStatus;
     // Implement search by location type
     if (locationType) {
-      query.locationType = searchLocationType;
+      if (Array.isArray(searchLocationType)) {
+        query.locationType = { $in: searchLocationType };
+      } else {
+        query.locationType = searchLocationType;
+      }
     }
     // Implement search by price range
     query.budget = { $gte: searchPriceRange.min, $lte: searchPriceRange.max };

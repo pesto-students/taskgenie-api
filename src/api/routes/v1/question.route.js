@@ -11,7 +11,8 @@ router.post(
 );
 
 router.post(
-  '/:taskId/questions/:questionId/replies',
+  '/:taskId/questions/:questionId',
+  verifyJWT,
   questionController.addReplyToQuestion,
 );
 

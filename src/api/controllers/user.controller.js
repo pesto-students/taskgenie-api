@@ -29,3 +29,16 @@ exports.setupProfile = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getUserById = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const user = User.findById(userId);
+    if (!user) {
+      return next(createError(httpStatus.NOT_FOUND, ' User not found'));
+    }
+    res.status(httpStatus.OK).json(user);
+  } catch (error) {
+    next(error);
+  }
+};

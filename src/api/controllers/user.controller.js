@@ -41,7 +41,9 @@ exports.getProfileStatus = async (req, res, next) => {
     }
 
     // Return the profile status
-    return res.status(200).json({ isSetupProfileComplete: user.isSetupProfileComplete });
+    return res
+      .status(200)
+      .json({ isSetupProfileComplete: user.isSetupProfileComplete });
   } catch (error) {
     next(error);
   }
@@ -71,7 +73,7 @@ exports.getProfileStatus = async (req, res, next) => {
 exports.getUserById = async (req, res, next) => {
   try {
     const { userId } = req.params;
-    const user = User.findById(userId);
+    const user = await User.findById(userId);
     if (!user) {
       return next(createError(httpStatus.NOT_FOUND, ' User not found'));
     }

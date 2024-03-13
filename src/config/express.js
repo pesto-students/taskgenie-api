@@ -44,7 +44,7 @@ app.use((req, res, next) => {
 // eslint-disable-next-line no-unused-vars
 app.use((err, req, res, next) => {
   logger.error(err.stack);
-  res.status(err.status || httpStatus.INTERNAL_SERVER_ERROR);
+  console.log('got error', err);
   res.json({
     error: {
       message: err.message,

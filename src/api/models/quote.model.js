@@ -18,9 +18,9 @@ const quoteSchema = new mongoose.Schema({
     required: true,
   },
   status: {
-    // can be only 'applied' or 'assigned'
+    // can be only 'applied' or 'assigned' or 'completed' or 'cancelled by owner' or 'cancelled by genie'
     type: String,
-    enum: ['applied', 'assigned'],
+    enum: ['applied', 'assigned', 'completed', 'cancelled'],
     default: 'applied',
     required: true,
   },

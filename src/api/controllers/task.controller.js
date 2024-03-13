@@ -248,3 +248,64 @@ exports.addQuote = async (req, res, next) => {
     next(error);
   }
 };
+
+// Accept a quote
+exports.acceptQuote = async (req, res, next) => {
+  try {
+    console.log('meow here');
+    const { taskId, quoteId } = req.params;
+    const userId = req.user; // Assuming you have a middleware to extract user ID from JWT
+
+    // Find the task by taskId
+    const task = await Task.findById(taskId);
+
+    // Check if the task exists
+    if (!task) {
+      return next(CreateHttpError(httpStatus.NOT_FOUND, 'Task not found'));
+    }
+    console.log(task.title);
+    // Check if the user is the owner of the task
+    if (task.postedBy !== userId) {
+      console.log('postedBy', task.postedBy, 'userid', userId);
+      return next(
+        CreateHttpError(
+          httpStatus.Forbidden,
+          'You are not authorized to accept quotes for this task',
+        ),
+      );
+    }
+
+    // Check if the task has already been assigned
+    if (task.status === 'assigned') {
+      return next(
+        CreateHttpError(
+          httpStatus.BAD_REQUEST,
+          'Task has already been assigned',
+        ),
+      );
+    }
+
+    // Check if the quote belongs to the task
+    const quote = await Quote.findById(quoteId);
+    if (!quote || quote.taskId.toString() !== taskId) {
+      return next(
+        CreateHttpError(httpStatus.NOT_FOUND, 'Quote not found for the task'),
+      );
+    }
+
+    // Update the status of the quote to "assigned"
+    quote.status = 'assigned';
+    await quote.save();
+
+    // Update the task's acceptedQuote field with the quoteId
+    task.acceptedQuote = quoteId;
+    task.status = 'assigned';
+    await task.save();
+
+    res
+      .status(httpStatus.OK)
+      .json({ message: 'Quote accepted successfully', acceptedQuote: quoteId });
+  } catch (error) {
+    next(error);
+  }
+};

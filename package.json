@@ -8,6 +8,7 @@
   },
   "scripts": {
     "start": "node ./src/index.js",
+    "build":"npm install",
     "dev": "nodemon ./src/index.js",
     "test": "jest"
   },

@@ -4,7 +4,16 @@ const User = require('./user.model');
 const userType = ['taskGenie', 'poster'];
 
 const reviewSchema = new mongoose.Schema({
-  userId: {
+  reviewID: {
+    type: String,
+    required: true,
+  },
+  submitterUserID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: User,
+    required: true,
+  },
+  recipientUserID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: User,
     required: true,
@@ -14,7 +23,7 @@ const reviewSchema = new mongoose.Schema({
     enum: [userType],
     required: true,
   },
-  text: {
+  review: {
     type: String,
     required: true,
   },

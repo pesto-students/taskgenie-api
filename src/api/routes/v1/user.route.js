@@ -1,5 +1,5 @@
 const express = require('express');
-const { setupProfile, getProfileStatus } = require('../../controllers/user.controller');
+const { setupProfile, getProfileStatus, getReviewsByType, getProfile } = require('../../controllers/user.controller');
 const verifyJWT = require('../../middlewares/verifyJWT.middleware');
 const {
   validateRequest,
@@ -15,6 +15,14 @@ router
 router
   .route('/:id/profileStatus')
   .get(verifyJWT, getProfileStatus);
+
+router
+  .route('/profile/:id')
+  .get(verifyJWT, getProfile);
+
+router
+  .route('/profile/:id/reviews')
+  .get(verifyJWT, getReviewsByType);
 
 // router
 //   .route('/:id/profileStatus')

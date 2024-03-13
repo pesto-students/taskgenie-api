@@ -1,6 +1,7 @@
 const createError = require('http-errors');
 const httpStatus = require('http-status');
 const User = require('../models/user.model');
+const Review = require('../models/review.model');
 
 exports.setupProfile = async (req, res, next) => {
   try {
@@ -41,29 +42,39 @@ exports.getProfileStatus = async (req, res, next) => {
     }
 
     // Return the profile status
-    return res.status(200).json({ isSetupProfileComplete: user.isSetupProfileComplete });
+    return res
+      .status(200)
+      .json({ isSetupProfileComplete: user.isSetupProfileComplete });
   } catch (error) {
     next(error);
   }
 };
 
-// exports.updateProfileStatus = async (req, res, next) => {
-//   const userId = req.params.id;
-//   // const userId = req.user.sub;
-//   const { isSetupProfileComplete } = req.body;
+exports.getProfile = async (req, res, next) => {
+  
+}
 
-//   try {
-//     const user = await User.findById(userId);
-//     if (!user) {
-//       return res.status(404).json({ message: 'User not found' });
-//     }
+exports.getReviewsByType = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const { userType } = req.query;
 
-//     // Update the isSetupProfileComplete field
-//     user.isSetupProfileComplete = isSetupProfileComplete;
-//     await user.save();
+    // Validate type parameter
+    if (!['taskGenie', 'poster'].includes(userType)) {
+      return next(createError(httpStatus.NOT_FOUND, 'Invalid review type'));
+    }
 
-//     res.status(200).json({ message: 'User profile updated successfully' });
-//   } catch (error) {
-//     next(error);
-//   }
-// };
+    // Find user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Find reviews by user ID and type
+    const reviews = await Review.find({ submitterUserID: userId, userType });
+
+    res.json(reviews);
+  } catch (error) {
+    next(error);
+  }
+};

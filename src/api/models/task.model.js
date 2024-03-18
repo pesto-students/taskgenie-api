@@ -80,7 +80,30 @@ const taskSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  questions: [questionSchema],
+  questions: [
+    {
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
+      question: {
+        type: String,
+        required: true,
+      },
+      askedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      answer: {
+        text: {
+          type: String,
+        },
+        repliedAt: {
+          type: Date,
+        },
+      },
+    },
+  ],
   acceptedQuote: {
     type: mongoose.Schema.Types.ObjectId,
   },

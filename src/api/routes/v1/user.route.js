@@ -3,6 +3,7 @@ const {
   setupProfile,
   getProfileStatus,
   getUserById,
+  getUserNameById,
 } = require('../../controllers/user.controller');
 const verifyJWT = require('../../middlewares/verifyJWT.middleware');
 const {
@@ -18,6 +19,7 @@ router
 
 router.route('/:id/profileStatus').get(verifyJWT, getProfileStatus);
 router.route('/:userId/').get(verifyJWT, getUserById);
+router.route('/:userId/name').get(getUserNameById);
 // router
 //   .route('/:id/profileStatus')
 //   .patch(verifyJWT, updateProfileStatus);

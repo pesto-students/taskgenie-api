@@ -82,3 +82,15 @@ exports.getUserById = async (req, res, next) => {
     next(error);
   }
 };
+exports.getUserNameById = async (req, res, next) => {
+  try {
+    const { userId } = req.params;
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(createError(httpStatus.NOT_FOUND, 'User not found'));
+    }
+    res.status(httpStatus.OK).json({ name: user.toObject().name });
+  } catch (error) {
+    next(error);
+  }
+};

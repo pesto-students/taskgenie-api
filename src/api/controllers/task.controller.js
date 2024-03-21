@@ -8,6 +8,7 @@ const Quote = require('../models/quote.model');
  */
 // Controller method to add a new task
 exports.addTask = async (req, res, next) => {
+  console.log('meow add task');
   try {
     const userId = req.user;
     const {
@@ -18,9 +19,9 @@ exports.addTask = async (req, res, next) => {
       dateType,
       date,
       budget,
-      imageURLs,
+      images,
     } = req.body;
-
+    console.log('iamges', req.body);
     let taskLocation = null;
     if (locationType !== 'remote') {
       taskLocation = {
@@ -40,7 +41,7 @@ exports.addTask = async (req, res, next) => {
       locationType,
       location: taskLocation,
       locationName: location?.name ?? null,
-      imageURLs,
+      images,
       postedBy: userId,
       questions: [],
       assignedUser: null,

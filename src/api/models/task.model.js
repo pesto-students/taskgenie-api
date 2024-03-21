@@ -65,21 +65,15 @@ const taskSchema = new mongoose.Schema({
   locationName: {
     type: String,
   },
-  imageUrls: [
-    {
-      type: String,
-      validate: {
-        validator(v) {
-          return /^https?:\/\/.*\.(?:png|jpg|jpeg)$/i.test(v);
-        },
-        message: (props) => `${props.value} is not a valid image URL!`,
-      },
-    },
-  ],
   postedBy: {
     type: String,
     required: true,
   },
+  images: [
+    {
+      type: String,
+    },
+  ],
   questions: [
     {
       userId: {

@@ -8,7 +8,6 @@ const Quote = require('../models/quote.model');
  */
 // Controller method to add a new task
 exports.addTask = async (req, res, next) => {
-  console.log('meow add task');
   try {
     const userId = req.user;
     const {
@@ -21,7 +20,6 @@ exports.addTask = async (req, res, next) => {
       budget,
       images,
     } = req.body;
-    console.log('iamges', req.body);
     let taskLocation = null;
     if (locationType !== 'remote') {
       taskLocation = {
@@ -126,27 +124,34 @@ exports.getTasks = async (req, res, next) => {
     const defaultDistance = 50;
     const defaultLng = 75.7873; // Default location of Jaipur, Rajasthan
     const defaultLat = 26.9124;
-    const defaultLocationType = ['in-person', 'remote'];
-    const defaultPriceRange = { min: 100, max: 99000 };
-    const defaultSortBy = 'createdAt';
+    const defaultLocationTypes = ['in-person', 'remote'];
+    const defaultPriceRange = { minPrice: 100, maxPrice: 99000 };
+    const defaultSortBy = 'date-dsc';
     const defaultStatus = 'open';
-
     // Extract query parameters
-    const { distance, lng, lat, locationType, priceRange, sortBy, status } =
-      req.query;
-
+    const {
+      distance,
+      lng,
+      lat,
+      locationType,
+      minPrice,
+      maxPrice,
+      sortBy,
+      status,
+    } = req.query;
     const searchDistance = distance || defaultDistance;
-    const searchLocationType =
-      locationType === 'all' || !locationType
-        ? defaultLocationType
-        : locationType;
-    const searchPriceRange = priceRange || defaultPriceRange;
+    const searchLocationType = locationType || defaultLocationTypes;
+    const priceRange = {
+      minPrice: Number(minPrice) || defaultPriceRange.minPrice,
+      maxPrice: Number(maxPrice) || defaultPriceRange.maxPrice,
+    };
     const searchSortBy = sortBy || defaultSortBy;
     const searchStatus = status || defaultStatus;
+
     // Build query based on parameters
     const query = {};
     // Implement search by distance and location
-    if (searchLocationType !== 'remote') {
+    if (searchLocationType.includes('in-person')) {
       const searchLat = lat && lng ? lat : defaultLat;
       const searchLng = lat && lng ? lng : defaultLng;
       query.location = {
@@ -159,19 +164,23 @@ exports.getTasks = async (req, res, next) => {
         },
       };
     }
-    query.status = searchStatus;
-    // Implement search by location type
-    if (locationType) {
-      if (Array.isArray(searchLocationType)) {
-        query.locationType = { $in: searchLocationType };
-      } else {
-        query.locationType = searchLocationType;
-      }
-    }
-    // Implement search by price range
-    query.budget = { $gte: searchPriceRange.min, $lte: searchPriceRange.max };
     // Get tasks based on the constructed query
-    const tasks = await Task.find(query).sort(searchSortBy);
+    const tasks = await Task.aggregate([
+      //  Filter by status and budget
+      {
+        $match: {
+          status: searchStatus,
+          budget: {
+            $gte: priceRange.minPrice,
+            $lte: priceRange.maxPrice,
+          },
+          locationType: Array.isArray(searchLocationType)
+            ? { $in: searchLocationType }
+            : searchLocationType,
+        },
+      },
+      {},
+    ]);
 
     // Return tasks as response
     res.status(httpStatus.OK).json(tasks);
@@ -212,7 +221,6 @@ exports.getTaskById = async (req, res, next) => {
  */
 exports.addQuote = async (req, res, next) => {
   try {
-    console.log('body', req.body);
     const { taskId } = req.params;
     const task = await Task.findById(taskId);
     if (!task) {
@@ -253,7 +261,6 @@ exports.addQuote = async (req, res, next) => {
 // Accept a quote
 exports.acceptQuote = async (req, res, next) => {
   try {
-    console.log('meow here');
     const { taskId, quoteId } = req.params;
     const userId = req.user; // Assuming you have a middleware to extract user ID from JWT
 
@@ -264,10 +271,8 @@ exports.acceptQuote = async (req, res, next) => {
     if (!task) {
       return next(CreateHttpError(httpStatus.NOT_FOUND, 'Task not found'));
     }
-    console.log(task.title);
     // Check if the user is the owner of the task
     if (task.postedBy !== userId) {
-      console.log('postedBy', task.postedBy, 'userid', userId);
       return next(
         CreateHttpError(
           httpStatus.Forbidden,

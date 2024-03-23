@@ -2,10 +2,11 @@
 const Task = require('../models/task.model');
 const User = require('../models/user.model');
 const { Question } = require('../models/question.model');
+const httpStatus = require('http-status/lib');
 
 const questionController = {
   // Controller function to add a question to a task
-  addQuestionToTask: async (req, res) => {
+  addQuestionToTask: async (req, res, next) => {
     try {
       const { taskId } = req.params;
       const userId = req.user;
@@ -35,16 +36,16 @@ const questionController = {
         .status(201)
         .json({ message: 'Question added to task successfully', newQuestion });
     } catch (error) {
-      console.error(error);
+      next(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },
 
   // Controller function to add a reply to a question
-  addReplyToQuestion: async (req, res) => {
+  addReplyToQuestion: async (req, res, next) => {
     try {
       const { taskId, questionId } = req.params;
-      const { userId, name, message } = req.body;
+      const { message } = req.body;
       // Find the task by taskId
       const task = await Task.findById(taskId);
       if (!task) {
@@ -56,25 +57,21 @@ const questionController = {
         return res.status(404).json({ error: 'Question not found' });
       }
 
-      // Create a new reply
-      const reply = new Question({
-        userId,
-        name,
-        message,
-      });
-
-      // Save the reply to the database
-      await reply.save();
-
+      if (question.reply) {
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: 'You have already replied' });
+      }
       // Add the reply to the question's replies array
-      question.replies.push(reply);
+      question.reply = {
+        userId: req.user,
+        message,
+      };
       await task.save();
 
-      res
-        .status(201)
-        .json({ message: 'Reply added to question successfully', reply });
+      res.status(201).json({ message: 'Reply added to question successfully' });
     } catch (error) {
-      console.error(error);
+      next(error);
       res.status(500).json({ error: 'Internal server error' });
     }
   },

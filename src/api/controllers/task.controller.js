@@ -128,6 +128,7 @@ exports.getTasks = async (req, res, next) => {
     const defaultPriceRange = { minPrice: 100, maxPrice: 99000 };
     const defaultSortBy = 'date-dsc';
     const defaultStatus = 'open';
+
     // Extract query parameters
     const {
       distance,
@@ -139,6 +140,7 @@ exports.getTasks = async (req, res, next) => {
       sortBy,
       status,
     } = req.query;
+
     const searchDistance = distance || defaultDistance;
     const searchLocationType = locationType || defaultLocationTypes;
     const priceRange = {
@@ -167,41 +169,60 @@ exports.getTasks = async (req, res, next) => {
         sortCriteria.createdOn = -1;
         break;
     }
-    // Build query based on parameters
-    const query = {};
-    // Implement search by distance and location
-    if (searchLocationType.includes('in-person')) {
-      const searchLat = lat && lng ? lat : defaultLat;
-      const searchLng = lat && lng ? lng : defaultLng;
-      query.location = {
-        $nearSphere: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [searchLng, searchLat],
-          },
-          $maxDistance: searchDistance * 1000, // Convert to meters
+
+    // Define search query for remote jobs
+    const remoteJobsQuery = {
+      status: searchStatus,
+      budget: {
+        $gte: priceRange.minPrice,
+        $lte: priceRange.maxPrice,
+      },
+      locationType: 'remote', // Filter for remote jobs only
+    };
+
+    // Define search query for in-person jobs within given distance radius
+    const inPersonJobsQuery = {
+      status: searchStatus,
+      budget: {
+        $gte: priceRange.minPrice,
+        $lte: priceRange.maxPrice,
+      },
+      locationType: 'in-person', // Filter for in-person jobs only
+    };
+
+    // Implement search by distance and location for in-person jobs
+
+    const searchLat = lat && lng ? lat : defaultLat;
+    const searchLng = lat && lng ? lng : defaultLng;
+    inPersonJobsQuery.location = {
+      $nearSphere: {
+        $geometry: {
+          type: 'Point',
+          coordinates: [searchLng, searchLat],
         },
-      };
+        $maxDistance: searchDistance * 1000, // Convert to meters
+      },
+    };
+    let tasks = [];
+    if (locationType === 'remote') {
+      // Get tasks based on remote jobs query
+      tasks = await Task.find(remoteJobsQuery).lean();
+    } else if (locationType === 'in-person') {
+      tasks = await Task.find(inPersonJobsQuery).lean();
+    } else {
+      const remoteJobs = await Task.find(remoteJobsQuery).lean();
+      const inPersonJobs = await Task.find(inPersonJobsQuery).lean();
+      tasks = [...remoteJobs, ...inPersonJobs];
     }
-    // Get tasks based on the constructed query
-    const tasks = await Task.aggregate([
-      //  Filter by status and budget
-      {
-        $match: {
-          status: searchStatus,
-          budget: {
-            $gte: priceRange.minPrice,
-            $lte: priceRange.maxPrice,
-          },
-          locationType: Array.isArray(searchLocationType)
-            ? { $in: searchLocationType }
-            : searchLocationType,
-        },
-      },
-      {
-        $sort: sortCriteria,
-      },
-    ]);
+    const sortAttribute = Object.keys(sortCriteria)[0];
+    const sortDirection = sortCriteria[sortAttribute];
+    // Apply sorting
+    tasks.sort((a, b) => {
+      // Sorting based on the provided sortCriteria
+      const aValue = a[sortAttribute];
+      const bValue = b[sortAttribute];
+      return sortDirection === -1 ? bValue - aValue : aValue - bValue;
+    });
 
     // Return tasks as response
     res.status(httpStatus.OK).json(tasks);

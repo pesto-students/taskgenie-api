@@ -145,9 +145,28 @@ exports.getTasks = async (req, res, next) => {
       minPrice: Number(minPrice) || defaultPriceRange.minPrice,
       maxPrice: Number(maxPrice) || defaultPriceRange.maxPrice,
     };
-    const searchSortBy = sortBy || defaultSortBy;
     const searchStatus = status || defaultStatus;
-
+    const sortOption = sortBy || defaultSortBy;
+    const sortCriteria = {};
+    switch (sortOption) {
+      case 'date-desc':
+        // Latest task first
+        sortCriteria.createdOn = -1;
+        break;
+      case 'date-asc':
+        // Oldest task first
+        sortCriteria.createdOn = 1;
+        break;
+      case 'price-desc':
+        sortCriteria.budget = -1;
+        break;
+      case 'price-asc':
+        sortCriteria.budget = 1;
+        break;
+      default:
+        sortCriteria.createdOn = -1;
+        break;
+    }
     // Build query based on parameters
     const query = {};
     // Implement search by distance and location
@@ -179,7 +198,9 @@ exports.getTasks = async (req, res, next) => {
             : searchLocationType,
         },
       },
-      {},
+      {
+        $sort: sortCriteria,
+      },
     ]);
 
     // Return tasks as response

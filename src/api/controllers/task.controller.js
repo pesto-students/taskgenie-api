@@ -368,20 +368,24 @@ exports.completeTaskByGenie = async (req, res, next) => {
 
     // If the task doesn't exist
     if (!task) {
-      throw new CreateHttpError.NotFound('Task not found');
+      return next(
+        CreateHttpError.NotFound('Task not found'),
+      );
     }
 
     // Check if the task is already completed or cancelled
     if (task.status === 'completed' || task.status === 'cancelled') {
-      throw new CreateHttpError.BadRequest(
-        'Task is already completed or cancelled',
+      return next(
+        CreateHttpError.BadRequest('Task is already completed or cancelled'),
       );
     }
 
     // Check if the task is assigned to the current user
-    if (task.assignedUser !== userId) {
-      throw new CreateHttpError.Forbidden(
-        'You are not authorized to complete this task',
+    if (task.acceptedQuote.userId !== userId) {
+      return next(
+        CreateHttpError.Forbidden(
+          'You are not authorized to complete this task',
+        ),
       );
     }
 
@@ -389,9 +393,50 @@ exports.completeTaskByGenie = async (req, res, next) => {
     task.status = 'completed';
     await task.save();
 
-    // If the task was successfully completed, send a success response
+    // If the task was successfully completed
     res.status(httpStatus.OK).json({ message: 'Task completed successfully' });
   } catch (error) {
     next(error);
   }
 };
+
+exports.cancelTaskByOwner = async (req, res,next) {
+  try {
+    const userId = req.user; // Assuming you're extracting user ID from JWT token
+    const { taskId } = req.params;
+
+    // Find the task by ID
+    const task = await Task.findById(taskId);
+
+    // If the task doesn't exist
+    if (!task) {
+      return next(
+        CreateHttpError.NotFound('Task not found'),
+      );
+    }
+
+    // Check if the user is the owner of the task
+    if (task.postedBy !== userId) {
+      return next( 
+          CreateHttpError.Forbidden('You are not authorized to cancel this task'),
+      );
+    }
+
+    // Check if the task is already cancelled or completed
+    if (task.status === 'cancelled' || task.status === 'completed') {
+      return next(
+        CreateHttpError.BadRequest('Task is already completed or cancelled'),
+      );
+    }
+
+    // Update the task status to "cancelled"
+    task.status = 'cancelled';
+    await task.save();
+
+    // If the task was successfully cancelled
+    res.status(httpStatus.OK).json({ message: 'Task cancelled successfully' });
+  } catch (error) {
+    next(error); // Pass any caught errors to the error handling middleware
+  }
+};
+

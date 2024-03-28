@@ -10,6 +10,7 @@ const {
   getAllTasksByUser,
   deleteTask,
   getTaskById,
+  cancelTaskByOwner,
 } = require('../../controllers/task.controller');
 
 const router = express.Router();
@@ -30,4 +31,5 @@ router.route('/').get(getAllTasksByUser);
 router.route('/').post(upload.array('images', 5), addTask);
 router.route('/:taskId').get(getTaskById);
 router.route('/:taskId').delete(deleteTask);
+router.route(':/taskId/cancelTaskByOwner').patch(cancelTaskByOwner);
 module.exports = router;

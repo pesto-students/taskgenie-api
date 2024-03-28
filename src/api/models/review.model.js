@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const User = require('./user.model');
+const Task = require('./task.model')
 // Define user type
 const userType = ['taskGenie', 'poster'];
 
@@ -16,6 +17,11 @@ const reviewSchema = new mongoose.Schema({
   recipientUserID: {
     type: mongoose.Schema.Types.ObjectId,
     ref: User,
+    required: true,
+  },
+  taskID: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: Task,
     required: true,
   },
   userType: {

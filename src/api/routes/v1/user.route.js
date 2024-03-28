@@ -1,5 +1,10 @@
 const express = require('express');
-const { setupProfile, getProfileStatus, getReviewsByType, getProfile } = require('../../controllers/user.controller');
+const {
+  setupProfile,
+  getProfileStatus, getReviewsByType, getProfile,
+  getUserById,
+  getUserNameById,
+} = require('../../controllers/user.controller');
 const verifyJWT = require('../../middlewares/verifyJWT.middleware');
 const {
   validateRequest,
@@ -12,10 +17,9 @@ router
   .route('/:id')
   .patch(verifyJWT, validateRequest(setupProfileSchema), setupProfile);
 
-router
-  .route('/:id/profileStatus')
-  .get(verifyJWT, getProfileStatus);
-
+router.route('/:id/profileStatus').get(verifyJWT, getProfileStatus);
+router.route('/:userId/').get(verifyJWT, getUserById);
+router.route('/:userId/name').get(getUserNameById);
 router
   .route('/profile/:id')
   .get(verifyJWT, getProfile);

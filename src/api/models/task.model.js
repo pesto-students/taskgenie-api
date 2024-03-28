@@ -65,23 +65,42 @@ const taskSchema = new mongoose.Schema({
   locationName: {
     type: String,
   },
-  imageUrls: [
-    {
-      type: String,
-      validate: {
-        validator(v) {
-          return /^https?:\/\/.*\.(?:png|jpg|jpeg)$/i.test(v);
-        },
-        message: (props) => `${props.value} is not a valid image URL!`,
-      },
-    },
-  ],
   postedBy: {
     type: String,
     required: true,
   },
-  questions: [questionSchema],
-  assignedUser: String,
+  images: [
+    {
+      type: String,
+    },
+  ],
+  questions: [
+    {
+      userId: {
+        type: mongoose.Schema.Types.ObjectId,
+        required: true,
+      },
+      question: {
+        type: String,
+        required: true,
+      },
+      askedAt: {
+        type: Date,
+        default: Date.now,
+      },
+      answer: {
+        text: {
+          type: String,
+        },
+        repliedAt: {
+          type: Date,
+        },
+      },
+    },
+  ],
+  acceptedQuote: {
+    type: mongoose.Schema.Types.ObjectId,
+  },
 });
 // Indexing for GeoJSON
 taskSchema.index({ location: '2dsphere' });

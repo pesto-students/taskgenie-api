@@ -136,48 +136,6 @@ UserSchema.statics = {
       status: httpStatus.NOT_FOUND,
     });
   },
-  /**
-   * Find user by email and tries to generate jwt token
-   * @param {*} options
-   * @returns {Promise<User, HttpError>}
-   */
-  async findAndGenerateToken(options) {
-    // throw error if no email is provided
-    const { email, password, refreshObject } = options;
-    if (!email) {
-      throw new Error({
-        message: 'An email is required to generate access token',
-      });
-    }
-    // eslint-disable-next-line no-use-before-define
-    const user = await User.findOne({ email }).exec();
-    const err = {
-      status: httpStatus.UNAUTHORIZED,
-      isPublic: true,
-    };
-    if (password) {
-      // email and password are available
-      if (user && user.passwordMatches(password)) {
-        // generate a new jwt token and send
-        return {
-          user,
-          accessToken: user.token(),
-        };
-      }
-      err.message = 'Incorrect email or password';
-    } else if (refreshObject && refreshObject.userEmail === email) {
-      // if email is there and a valid refresh token is provided
-      // generate a new access token and send
-      if (moment(refreshObject.expires).isBefore()) {
-        err.message = 'Invalid refresh token.';
-      } else {
-        return { user, accessToken: user.token() };
-      }
-    } else {
-      err.message = 'Incorrect email or refreshToken';
-    }
-    throw new CreateHttpError(err);
-  },
 };
 
 const User = mongoose.model('User', UserSchema);

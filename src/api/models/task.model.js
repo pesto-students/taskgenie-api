@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { questionSchema } = require('./question.model');
 // Define task statuses
 const taskStatus = ['open', 'assigned', 'cancelled', 'completed'];
 

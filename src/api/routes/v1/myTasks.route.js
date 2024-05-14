@@ -1,10 +1,6 @@
 const express = require('express');
 const multer = require('multer');
-const taskSchema = require('../../validations/task.validation');
-const {
-  validateRequest,
-} = require('../../middlewares/validateRequest.middleware');
-
+require('../../validations/task.validation');
 const {
   addTask,
   getAllTasksByUser,
@@ -16,10 +12,10 @@ const router = express.Router();
 
 // Define multer storage configuration
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
+  destination(req, file, cb) {
     cb(null, 'uploads/'); // Define the destination folder where files will be stored
   },
-  filename: function (req, file, cb) {
+  filename(req, file, cb) {
     cb(null, file.originalname); // Use the original filename
   },
 });

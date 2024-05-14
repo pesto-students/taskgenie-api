@@ -124,7 +124,7 @@ exports.getTasks = async (req, res, next) => {
     const defaultDistance = 50;
     const defaultLng = 75.7873; // Default location of Jaipur, Rajasthan
     const defaultLat = 26.9124;
-    const defaultLocationTypes = ['in-person', 'remote'];
+    // const defaultLocationTypes = ['in-person', 'remote'];
     const defaultPriceRange = { minPrice: 100, maxPrice: 99000 };
     const defaultSortBy = 'date-dsc';
     const defaultStatus = 'open';
@@ -142,7 +142,7 @@ exports.getTasks = async (req, res, next) => {
     } = req.query;
 
     const searchDistance = distance || defaultDistance;
-    const searchLocationType = locationType || defaultLocationTypes;
+    // const searchLocationType = locationType || defaultLocationTypes;
     const priceRange = {
       minPrice: Number(minPrice) || defaultPriceRange.minPrice,
       maxPrice: Number(maxPrice) || defaultPriceRange.maxPrice,

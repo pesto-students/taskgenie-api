@@ -18,7 +18,8 @@ const taskSchema = Joi.object({
     otherwise: Joi.optional(),
   }),
   description: Joi.string().max(1000).required(),
-  budget: Joi.number().integer().min(100).max(99000).required(),
+  budget: Joi.number().integer().min(100).max(99000)
+    .required(),
   images: Joi.array().max(3).optional(),
 });
 

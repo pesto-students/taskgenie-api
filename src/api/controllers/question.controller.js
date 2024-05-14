@@ -1,8 +1,8 @@
 // Import necessary modules or models
+const httpStatus = require('http-status/lib');
 const Task = require('../models/task.model');
 const User = require('../models/user.model');
 const { Question } = require('../models/question.model');
-const httpStatus = require('http-status/lib');
 
 const questionController = {
   // Controller function to add a question to a task
@@ -11,7 +11,7 @@ const questionController = {
       const { taskId } = req.params;
       const userId = req.user;
       const { question } = req.body;
-      const { name } = await User.findById(userId);
+      const { name } = await User.findById;
       // Find the task by taskId
       const task = await Task.findById(taskId);
       if (!task) {

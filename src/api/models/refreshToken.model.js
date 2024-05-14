@@ -28,11 +28,13 @@ const refreshTokenSchema = new mongoose.Schema({
 
 refreshTokenSchema.statics = {
   // generate a refresh token object and saves it into the database
-  generate(user) {
+  async generate(user) {
     try {
       const userId = user._id;
       const userEmail = user.email;
-      const expiresOn = moment().add(30, 'days').toDate();
+      const expiresOn = moment()
+        .add(30, 'days')
+        .toDate();
       const token = uuidv4();
       const values = {
         userId,
@@ -41,7 +43,7 @@ refreshTokenSchema.statics = {
         expires: expiresOn,
       };
       const tokenObject = new RefreshToken(values);
-      tokenObject.save();
+      await tokenObject.save();
       return tokenObject;
     } catch (error) {
       throw createHttpError(500, 'Internal Server Error');

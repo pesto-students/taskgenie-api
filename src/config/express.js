@@ -4,7 +4,6 @@ const cors = require('cors');
 const helmet = require('helmet');
 const passport = require('passport');
 const createError = require('http-errors');
-const httpStatus = require('http-status');
 const routes = require('../api/routes/v1');
 const strategies = require('./passport');
 const logger = require('./logger');

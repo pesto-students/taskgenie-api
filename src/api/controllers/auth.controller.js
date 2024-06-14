@@ -1,64 +1,64 @@
-const httpStatus = require('http-status');
-const moment = require('moment');
-const { omit } = require('lodash');
-const User = require('../models/user.model');
-const { jwtExpirationInterval } = require('../../config/vars');
-const RefreshToken = require('../models/refreshToken.model');
+const httpStatus = require("http-status");
+const moment = require("moment");
+const { omit } = require("lodash");
+const User = require("../models/user.model");
+const { jwtExpirationInterval } = require("../../config/vars");
+const RefreshToken = require("../models/refreshToken.model");
 
 // Generate token response containing access token and refresh token
 function generateTokenResponse(user, accessToken) {
-  const tokenType = 'Bearer';
-  const token = RefreshToken.generate(user).refreshToken;
-  const expiresIn = moment().add(jwtExpirationInterval, 'days');
-  return {
-    tokenType,
-    accessToken,
-    refreshToken: token,
-    expiresIn,
-  };
+	const tokenType = "Bearer";
+	const token = RefreshToken.generate(user).refreshToken;
+	const expiresIn = moment().add(jwtExpirationInterval, "days");
+	return {
+		tokenType,
+		accessToken,
+		refreshToken: token,
+		expiresIn,
+	};
 }
 /**
  * Returns jwt token if registration was successful
  * @public
  */
 async function signUp(req, res, next) {
-  try {
-    const { email } = req.body;
-    // Check if user already exists with the given email
-    const existingUser = await User.findOne({ email });
+	try {
+		const { email } = req.body;
+		// Check if user already exists with the given email
+		const existingUser = await User.findOne({ email });
 
-    if (existingUser) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        message: 'Email already exists',
-      });
-    }
+		if (existingUser) {
+			return res.status(httpStatus.UNAUTHORIZED).json({
+				message: "Email already exists",
+			});
+		}
 
-    // If user doesn't exist, proceed with creating a new user
-    const userData = omit(req.body, 'role');
-    const user = new User(userData);
-    await user.save();
+		// If user doesn't exist, proceed with creating a new user
+		const userData = omit(req.body, "role");
+		const user = new User(userData);
+		await user.save();
 
-    // Generate Token response containing access token and refresh token
-    const token = generateTokenResponse(user, user.token());
+		// Generate Token response containing access token and refresh token
+		const token = generateTokenResponse(user, user.token());
 
-    // Return the response with appropriate status code and JSON body
-    res.status(httpStatus.CREATED).json({
-      accessToken: token.accessToken,
-      refreshToken: token.refreshToken,
-      tokenType: 'Bearer',
-      expiresIn: token.expiresIn,
-      user: {
-        email: user.email,
-        role: user.role,
-        id: user.id,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-      },
-    });
-  } catch (error) {
-    next(error); // Pass other errors to the error handler middleware
-  }
-  return null;
+		// Return the response with appropriate status code and JSON body
+		res.status(httpStatus.CREATED).json({
+			accessToken: token.accessToken,
+			refreshToken: token.refreshToken,
+			tokenType: "Bearer",
+			expiresIn: token.expiresIn,
+			user: {
+				email: user.email,
+				role: user.role,
+				id: user.id,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+			},
+		});
+	} catch (error) {
+		next(error); // Pass other errors to the error handler middleware
+	}
+	return null;
 }
 
 /**
@@ -66,56 +66,56 @@ async function signUp(req, res, next) {
  * @public
  */
 async function signIn(req, res, next) {
-  try {
-    const { email, password } = req.body;
-    const user = await User.findOne({ email });
+	try {
+		const { email, password } = req.body;
+		const user = await User.findOne({ email });
 
-    if (!user) {
-      return res.status(httpStatus.CONFLICT).json({
-        status: 'error',
-        code: 'email_does_not_exists',
-        message: 'Email doesn not exists',
-      });
-    }
+		if (!user) {
+			return res.status(httpStatus.CONFLICT).json({
+				status: "error",
+				code: "email_does_not_exists",
+				message: "Email doesn not exists",
+			});
+		}
 
-    if (!user) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        status: 'error',
-        code: 'authentication_failed',
-        message:
-          'Authentication failed. User not found or invalid credentials.',
-      });
-    }
+		if (!user) {
+			return res.status(httpStatus.UNAUTHORIZED).json({
+				status: "error",
+				code: "authentication_failed",
+				message:
+					"Authentication failed. User not found or invalid credentials.",
+			});
+		}
 
-    const isPasswordMatch = await user.passwordMatches(password);
+		const isPasswordMatch = await user.passwordMatches(password);
 
-    if (!isPasswordMatch) {
-      return res.status(httpStatus.UNAUTHORIZED).json({
-        status: 'error',
-        code: 'authentication_failed',
-        message: 'Authentication failed. Wrong credentials.',
-      });
-    }
+		if (!isPasswordMatch) {
+			return res.status(httpStatus.UNAUTHORIZED).json({
+				status: "error",
+				code: "authentication_failed",
+				message: "Authentication failed. Wrong credentials.",
+			});
+		}
 
-    const accessToken = await user.token();
-    const tokenResponse = generateTokenResponse(user, accessToken);
-    return res.json({
-      accessToken: tokenResponse.accessToken,
-      refreshToken: tokenResponse.refreshToken,
-      tokenType: 'Bearer',
-      expiresIn: tokenResponse.expiresIn,
-      user: {
-        email: user.email,
-        role: user.role,
-        id: user.id,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-        isSetupProfileComplete: user.isSetupProfileComplete,
-      },
-    });
-  } catch (error) {
-    return next(error);
-  }
+		const accessToken = await user.token();
+		const tokenResponse = generateTokenResponse(user, accessToken);
+		return res.json({
+			accessToken: tokenResponse.accessToken,
+			refreshToken: tokenResponse.refreshToken,
+			tokenType: "Bearer",
+			expiresIn: tokenResponse.expiresIn,
+			user: {
+				email: user.email,
+				role: user.role,
+				id: user.id,
+				createdAt: user.createdAt,
+				updatedAt: user.updatedAt,
+				isSetupProfileComplete: user.isSetupProfileComplete,
+			},
+		});
+	} catch (error) {
+		return next(error);
+	}
 }
 
 /**
@@ -123,21 +123,21 @@ async function signIn(req, res, next) {
  * @public
  */
 async function refreshToken(req, res, next) {
-  try {
-    const { email, token } = req.body;
-    const refreshObject = await RefreshToken.findOneAndRemove({
-      userEmail: email,
-      refreshToken: token,
-    });
-    const { user, accessToken } = await User.findAndGenerateToken({
-      email,
-      refreshObject,
-    });
-    const response = generateTokenResponse(user, accessToken);
-    return res.json(response);
-  } catch (error) {
-    return next(error);
-  }
+	try {
+		const { email, token } = req.body;
+		const refreshObject = await RefreshToken.findOneAndRemove({
+			userEmail: email,
+			refreshToken: token,
+		});
+		const { user, accessToken } = await User.findAndGenerateToken({
+			email,
+			refreshObject,
+		});
+		const response = generateTokenResponse(user, accessToken);
+		return res.json(response);
+	} catch (error) {
+		return next(error);
+	}
 }
 // logout and remove the refresh token from the database
 // async function logout(req, res, next) {
@@ -154,7 +154,7 @@ async function refreshToken(req, res, next) {
 // }
 
 module.exports = {
-  signUp,
-  signIn,
-  refreshToken,
+	signUp,
+	signIn,
+	refreshToken,
 };

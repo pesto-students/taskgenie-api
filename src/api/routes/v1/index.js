@@ -13,5 +13,4 @@ router.use('/my-tasks', verifyJWT, myTasksRoute);
 router.use('/tasks', tasksRoute);
 router.use('/user', userRoute);
 router.use('/task', questionsRoute);
-
 module.exports = router;

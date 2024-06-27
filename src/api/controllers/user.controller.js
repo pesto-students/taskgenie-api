@@ -13,7 +13,7 @@ exports.setupProfile = async (req, res, next) => {
 				firstName,
 				lastName,
 				city,
-				isSetupProfileComplete: true,
+				isProfileComplete: true,
 			},
 			{ new: true }
 		);
@@ -32,16 +32,14 @@ exports.setupProfile = async (req, res, next) => {
 };
 
 exports.getProfileStatus = async (req, res, next) => {
-	const userId = req.params.id;
+	const userId = req.user;
 	try {
 		const user = await User.findById(userId);
 		if (!user) {
 			return next(createError(httpStatus.NOT_FOUND, "User not found"));
 		}
 		// Return the profile status
-		return res
-			.status(200)
-			.json({ isSetupProfileComplete: user.isSetupProfileComplete });
+		return res.status(200).json({ isProfileComplete: user.isProfileComplete });
 	} catch (error) {
 		next(error);
 	}
@@ -50,7 +48,7 @@ exports.getProfileStatus = async (req, res, next) => {
 // exports.updateProfileStatus = async (req, res, next) => {
 //   const userId = req.params.id;
 //   // const userId = req.user.sub;
-//   const { isSetupProfileComplete } = req.body;
+//   const { isProfileComplete } = req.body;
 
 //   try {
 //     const user = await User.findById(userId);
@@ -58,8 +56,8 @@ exports.getProfileStatus = async (req, res, next) => {
 //       return res.status(404).json({ message: 'User not found' });
 //     }
 
-//     // Update the isSetupProfileComplete field
-//     user.isSetupProfileComplete = isSetupProfileComplete;
+//     // Update the isProfileComplete field
+//     user.isProfileComplete = isProfileComplete;
 //     await user.save();
 
 //     res.status(200).json({ message: 'User profile updated successfully' });
@@ -83,11 +81,13 @@ exports.getUserById = async (req, res, next) => {
 exports.getUserNameById = async (req, res, next) => {
 	try {
 		const { userId } = req.params;
+		console.log("userId", userId);
 		const user = await User.findById(userId);
+		console.log("user", user);
 		if (!user) {
 			return next(createError(httpStatus.NOT_FOUND, "User not found"));
 		}
-		res.status(httpStatus.OK).json({ name: user.toObject().name });
+		res.status(httpStatus.OK).json(user.toObject().firstName);
 	} catch (error) {
 		next(error);
 	}

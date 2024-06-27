@@ -1,5 +1,6 @@
 const httpStatus = require("http-status");
 const moment = require("moment");
+// @ts-ignore
 const { omit } = require("lodash");
 const User = require("../models/user.model");
 const { jwtExpirationInterval } = require("../../config/vars");
@@ -8,6 +9,7 @@ const RefreshToken = require("../models/refreshToken.model");
 // Generate token response containing access token and refresh token
 function generateTokenResponse(user, accessToken) {
 	const tokenType = "Bearer";
+	// @ts-ignore
 	const token = RefreshToken.generate(user).refreshToken;
 	const expiresIn = moment().add(jwtExpirationInterval, "days");
 	return {
@@ -39,6 +41,7 @@ async function signUp(req, res, next) {
 		await user.save();
 
 		// Generate Token response containing access token and refresh token
+		// @ts-ignore
 		const token = generateTokenResponse(user, user.token());
 
 		// Return the response with appropriate status code and JSON body
@@ -74,10 +77,9 @@ async function signIn(req, res, next) {
 			return res.status(httpStatus.CONFLICT).json({
 				status: "error",
 				code: "email_does_not_exists",
-				message: "Email doesn not exists",
+				message: "Email doesn't exists",
 			});
 		}
-
 		if (!user) {
 			return res.status(httpStatus.UNAUTHORIZED).json({
 				status: "error",
@@ -86,9 +88,8 @@ async function signIn(req, res, next) {
 					"Authentication failed. User not found or invalid credentials.",
 			});
 		}
-
+		// @ts-ignore
 		const isPasswordMatch = await user.passwordMatches(password);
-
 		if (!isPasswordMatch) {
 			return res.status(httpStatus.UNAUTHORIZED).json({
 				status: "error",
@@ -96,7 +97,7 @@ async function signIn(req, res, next) {
 				message: "Authentication failed. Wrong credentials.",
 			});
 		}
-
+		// @ts-ignore
 		const accessToken = await user.token();
 		const tokenResponse = generateTokenResponse(user, accessToken);
 		return res.json({
@@ -108,9 +109,7 @@ async function signIn(req, res, next) {
 				email: user.email,
 				role: user.role,
 				id: user.id,
-				createdAt: user.createdAt,
-				updatedAt: user.updatedAt,
-				isSetupProfileComplete: user.isSetupProfileComplete,
+				isProfileComplete: user.isProfileComplete,
 			},
 		});
 	} catch (error) {
@@ -125,10 +124,12 @@ async function signIn(req, res, next) {
 async function refreshToken(req, res, next) {
 	try {
 		const { email, token } = req.body;
+		// @ts-ignore
 		const refreshObject = await RefreshToken.findOneAndRemove({
 			userEmail: email,
 			refreshToken: token,
 		});
+		// @ts-ignore
 		const { user, accessToken } = await User.findAndGenerateToken({
 			email,
 			refreshObject,
@@ -139,7 +140,7 @@ async function refreshToken(req, res, next) {
 		return next(error);
 	}
 }
-// logout and remove the refresh token from the database
+// TODO: logout and remove the refresh token from the database
 // async function logout(req, res, next) {
 //   try {
 //     const { email, token } = req.body;

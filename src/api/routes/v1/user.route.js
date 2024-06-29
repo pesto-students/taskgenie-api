@@ -14,8 +14,8 @@ const setupProfileSchema = require("../../validations/setupProfileValidation");
 const router = express.Router();
 
 router
-	.route("/:id")
-	.patch(verifyJWT, validateRequest(setupProfileSchema), setupProfile);
+	.route("/")
+	.patch(verifyJWT, setupProfile);
 router.route("/profileStatus").get(verifyJWT, getProfileStatus);
 router.route("/:userId/").get(verifyJWT, getUserById);
 router.route("/:userId/name").get(getUserNameById);

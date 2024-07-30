@@ -16,6 +16,11 @@ const questionSchema = new mongoose.Schema({
 	reply: {
 		type: String,
 	},
+	status: {
+		type: String,
+		enum: ["open", "closed"],
+		default: "open",
+	},
 });
 
 module.exports = {

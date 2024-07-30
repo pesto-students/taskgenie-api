@@ -93,8 +93,40 @@ const questionController = {
 			if (!task) {
 				throw new Error("Task not found");
 			}
-			const questions = await Question.find({ _id: { $in: task.questions } });
-			res.status(200).json({ questions });
+			const questions = await Question.find({
+				_id: { $in: task.questions },
+				status: { $ne: "closed" },
+			});
+
+			res.status(200).json(questions);
+		} catch (error) {
+			next(error);
+		}
+	},
+	closeQuestion: async (req, res, next) => {
+		try {
+			const { taskId, questionId } = req.params;
+			const task = await Task.findById(taskId);
+			if (!task) {
+				throw new Error("Task not found");
+			}
+			const question = await Question.findById(questionId);
+			if (!question) {
+				throw new Error("Question not found");
+			}
+			// Only owner of question can delete it
+			const userId = req.user;
+			if (!userId) {
+				throw new Error("Invalid request");
+			}
+			if (question.userId.toString() === userId.toString()) {
+				question.status = "closed";
+			}
+			const updatedQuestion = await question.save();
+			res.status(200).json({
+				message: "Question closed successfully",
+				updatedQuestion,
+			});
 		} catch (error) {
 			next(error);
 		}

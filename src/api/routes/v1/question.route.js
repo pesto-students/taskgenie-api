@@ -1,19 +1,17 @@
-const express = require('express');
+const express = require("express");
 
 const router = express.Router();
-const verifyJWT = require('../../middlewares/verifyJWT.middleware');
-const questionController = require('../../controllers/question.controller');
+const verifyJWT = require("../../middlewares/verifyJWT.middleware");
+const {
+	addQuestionToTask,
+	addReplyToQuestion,
+	getQuestions,
+} = require("../../controllers/question.controller");
 
-router.post(
-  '/:taskId/questions',
-  verifyJWT,
-  questionController.addQuestionToTask,
-);
+router.get("/:taskId/questions", getQuestions);
 
-router.post(
-  '/:taskId/questions/:questionId',
-  verifyJWT,
-  questionController.addReplyToQuestion,
-);
+router.post("/:taskId/questions", verifyJWT, addQuestionToTask);
+
+router.post("/:taskId/questions/:questionId", verifyJWT, addReplyToQuestion);
 
 module.exports = router;

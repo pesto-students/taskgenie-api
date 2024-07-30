@@ -3,6 +3,7 @@ const httpStatus = require("http-status/lib");
 const Task = require("../models/task.model");
 const User = require("../models/user.model");
 const { Question } = require("../models/question.model");
+const { default: mongoose } = require("mongoose");
 
 const questionController = {
 	// Controller function to add a question to a task
@@ -34,10 +35,10 @@ const questionController = {
 			});
 
 			// Save the question to the database
-			await newQuestion.save();
-
+			const savedQuestion = await newQuestion.save();
+			console.log("ravi", savedQuestion._id);
 			// Add the question to the task's questions array
-			task.questions.push(newQuestion);
+			await task.questions.push(savedQuestion._id);
 			await task.save();
 
 			res
@@ -45,7 +46,6 @@ const questionController = {
 				.json({ message: "Question added to task successfully", newQuestion });
 		} catch (error) {
 			next(error);
-			res.status(500).json({ error: "Internal server error" });
 		}
 	},
 
@@ -80,7 +80,23 @@ const questionController = {
 			res.status(201).json({ message: "Reply added to question successfully" });
 		} catch (error) {
 			next(error);
-			res.status(500).json({ error: "Internal server error" });
+		}
+	},
+	getQuestions: async (req, res, next) => {
+		try {
+			const { taskId } = req.params;
+			// Validate if taskId is a valid mongodb id
+			if (!mongoose.Types.ObjectId.isValid(taskId)) {
+				throw new Error("invalid TaskId");
+			}
+			const task = await Task.findById(taskId);
+			if (!task) {
+				throw new Error("Task not found");
+			}
+			const questions = await Question.find({ _id: { $in: task.questions } });
+			res.status(200).json({ questions });
+		} catch (error) {
+			next(error);
 		}
 	},
 };

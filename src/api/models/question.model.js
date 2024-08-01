@@ -14,12 +14,22 @@ const questionSchema = new mongoose.Schema({
 		required: true,
 	},
 	reply: {
-		type: String,
+		message: {
+			type: String,
+		},
+		date: {
+			type: Date,
+			default: Date.now,
+		},
 	},
 	status: {
 		type: String,
 		enum: ["open", "closed"],
 		default: "open",
+	},
+	date: {
+		type: Date,
+		default: Date.now,
 	},
 });
 

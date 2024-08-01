@@ -36,7 +36,6 @@ const questionController = {
 
 			// Save the question to the database
 			const savedQuestion = await newQuestion.save();
-			console.log("ravi", savedQuestion._id);
 			// Add the question to the task's questions array
 			await task.questions.push(savedQuestion._id);
 			await task.save();
@@ -57,27 +56,27 @@ const questionController = {
 			// Find the task by taskId
 			const task = await Task.findById(taskId);
 			if (!task) {
-				return res.status(404).json({ error: "Task not found" });
+				throw new Error("Task not found");
 			}
 			// Find the question by questionId within the task
-			const question = task.questions.id(questionId);
+			const question = await Question.findById(questionId);
 			if (!question) {
-				return res.status(404).json({ error: "Question not found" });
+				throw new Error("Question not found");
 			}
 
-			if (question.reply) {
-				return res
-					.status(httpStatus.BAD_REQUEST)
-					.json({ message: "You have already replied" });
+			if (question?.reply?.message) {
+				throw new Error("You have already replied");
 			}
 			// Add the reply to the question's replies array
 			question.reply = {
-				userId: req.user,
 				message,
+				date: new Date(),
 			};
-			await task.save();
-
-			res.status(201).json({ message: "Reply added to question successfully" });
+			const updatedQuestion = await question.save();
+			res.status(201).json({
+				message: "Reply added to question successfully",
+				updatedQuestion,
+			});
 		} catch (error) {
 			next(error);
 		}

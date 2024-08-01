@@ -8,10 +8,8 @@ const {
 	getQuestions,
 	closeQuestion,
 } = require("../../controllers/question.controller");
-
 router.get("/:taskId/questions", getQuestions);
 router.post("/:taskId/questions", verifyJWT, addQuestionToTask);
 router.post("/:taskId/questions/:questionId", verifyJWT, addReplyToQuestion);
-router.delete("/:taskId/questions/questionId", verifyJWT, closeQuestion);
-
+router.delete("/:taskId/questions/:questionId", verifyJWT, closeQuestion);
 module.exports = router;

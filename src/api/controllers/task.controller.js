@@ -1,5 +1,6 @@
 const httpStatus = require("http-status");
 const CreateHttpError = require("http-errors");
+const mongoose = require("mongoose");
 const Task = require("../models/task.model");
 const Quote = require("../models/quote.model");
 
@@ -24,7 +25,7 @@ exports.addTask = async (req, res, next) => {
 		if (locationType !== "remote") {
 			taskLocation = {
 				type: "Point",
-				coordinates: location.coordinates,
+				coordinates: location.loc,
 			};
 		}
 		const taskData = {
@@ -46,6 +47,37 @@ exports.addTask = async (req, res, next) => {
 		};
 		const newTask = await Task.create(taskData);
 		res.status(httpStatus.CREATED).json(newTask);
+	} catch (error) {
+		next(error);
+	}
+};
+/**
+ * Updates a task by ID.
+ *
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ * @param {function} next - Express next middleware function
+ * @return {object} The updated task
+ */
+exports.editTask = async (req, res, next) => {
+	try {
+		const { taskId } = req.params;
+		// Check if taskId is valid
+		if (!mongoose.Types.ObjectId.isValid(taskId)) {
+			throw new Error("Invalid task ID");
+		}
+		// Find the task by taskId
+		const task = await Task.findById(taskId);
+		// Check if task exists
+		if (!task) {
+			throw new Error("Task not found");
+		}
+		// Update the task with the request body
+		const updatedTask = await Task.findByIdAndUpdate(taskId, req.body, {
+			new: true,
+		});
+		// Return the updated task
+		res.status(httpStatus.OK).json(updatedTask);
 	} catch (error) {
 		next(error);
 	}

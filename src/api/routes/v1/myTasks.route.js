@@ -6,6 +6,7 @@ const {
 	getAllTasksByUser,
 	deleteTask,
 	getTaskById,
+	editTask,
 } = require("../../controllers/task.controller");
 
 const router = express.Router();
@@ -19,11 +20,11 @@ const storage = multer.diskStorage({
 		cb(null, file.originalname); // Use the original filename
 	},
 });
-
 // Initialize multer middleware
 const upload = multer({ storage });
 router.route("/").get(getAllTasksByUser);
 router.route("/").post(upload.array("images", 5), addTask);
 router.route("/:taskId").get(getTaskById);
+router.route("/:taskId/edit").patch(editTask);
 router.route("/:taskId").delete(deleteTask);
 module.exports = router;
